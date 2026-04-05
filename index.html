@@ -1,918 +1,898 @@
 <!DOCTYPE html>
 <html lang="pt-br">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, user-scalable=no">
-    <title>NYEVO Trading Duelo 2.0 — MT5 Terminal</title>
-    <style>
-        * {
-            box-sizing: border-box;
-            user-select: none;
-            -webkit-tap-highlight-color: transparent;
-        }
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>NYEVO — Trading Duelo</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=DM+Sans:wght@300;400;500;600&display=swap');
 
-        body {
-            background: linear-gradient(145deg, #0a0f1e 0%, #0c1222 100%);
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            min-height: 100vh;
-            font-family: 'Inter', 'Segoe UI', 'Courier New', monospace;
-            margin: 0;
-            padding: clamp(8px, 2vw, 20px);
-            transition: all 0.2s;
-            -webkit-font-smoothing: antialiased;
-            text-rendering: optimizeLegibility;
-            overflow-x: hidden;
-        }
+:root {
+  --bg:       #070b12;
+  --surface:  #0c1220;
+  --panel:    #0f1928;
+  --border:   rgba(0,220,255,0.12);
+  --border-m: rgba(0,220,255,0.28);
+  --accent:   #00dcff;
+  --accent2:  #0099cc;
+  --glow:     rgba(0,220,255,0.18);
+  --up:       #00ffaa;
+  --up-dim:   rgba(0,255,170,0.12);
+  --down:     #ff2e6c;
+  --down-dim: rgba(255,46,108,0.12);
+  --gold:     #c8a96e;
+  --text:     #c8dce8;
+  --muted:    #4a6675;
+  --mono:     'Space Mono', monospace;
+  --sans:     'DM Sans', sans-serif;
+}
 
-        body.clutch-mode {
-            background: linear-gradient(145deg, #1a0a2e 0%, #0c0a1a 100%);
-            animation: pulse-bg 0.5s ease-in-out;
-        }
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+body{
+  background:var(--bg);
+  min-height:100vh;
+  display:flex;
+  justify-content:center;
+  align-items:flex-start;
+  font-family:var(--sans);
+  color:var(--text);
+  overflow-x:hidden;
+  /* subtle grid texture */
+  background-image:
+    linear-gradient(rgba(0,220,255,0.03) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(0,220,255,0.03) 1px, transparent 1px);
+  background-size:40px 40px;
+}
 
-        @keyframes pulse-bg {
-            0% { background: #0a0f1e; }
-            100% { background: #1a0a2e; }
-        }
+/* ── MODAL ─────────────────────────────────────────────── */
+.modal{
+  display:none;position:fixed;inset:0;
+  background:rgba(0,0,0,0.88);backdrop-filter:blur(18px);
+  z-index:2000;justify-content:center;align-items:center;
+}
+.modal.show{display:flex}
+.modal-box{
+  background:var(--surface);border:1px solid var(--border-m);
+  border-radius:24px;padding:40px 36px;max-width:460px;width:90%;
+  text-align:center;
+  box-shadow:0 0 80px rgba(0,220,255,0.08),0 40px 80px rgba(0,0,0,0.6);
+}
+.modal-logo{
+  font-family:var(--mono);font-size:1.1rem;
+  color:var(--accent);letter-spacing:6px;margin-bottom:6px;
+}
+.modal-title{
+  font-size:2rem;font-weight:600;letter-spacing:-0.5px;
+  margin-bottom:6px;color:#fff;
+}
+.modal-sub{color:var(--muted);font-size:0.85rem;margin-bottom:32px}
 
-        .arena {
-            width: 100%;
-            max-width: 1200px;
-            background: rgba(10, 20, 30, 0.85);
-            backdrop-filter: blur(12px);
-            border-radius: clamp(20px, 3vw, 56px);
-            padding: clamp(12px, 2vw, 24px);
-            box-shadow: 0 30px 80px rgba(0,0,0,0.8), inset 0 1px 1px rgba(255,255,255,0.08), inset 0 -2px 8px rgba(0,255,255,0.05);
-            border: 1px solid rgba(0, 255, 255, 0.3);
-            transition: all 0.2s;
-        }
+.mode-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:28px}
+.mode-card{
+  background:var(--panel);border:1px solid var(--border);
+  border-radius:16px;padding:20px 12px;cursor:pointer;
+  transition:border-color 0.2s,background 0.2s;
+}
+.mode-card.active{border-color:var(--accent);background:rgba(0,220,255,0.07)}
+.mode-card .icon{font-size:2rem;margin-bottom:8px}
+.mode-card .label{font-weight:600;font-size:0.9rem;color:#fff}
+.mode-card .sub{font-size:0.72rem;color:var(--muted);margin-top:3px}
+.btn-start{
+  width:100%;padding:14px;background:var(--accent);color:#070b12;
+  border:none;border-radius:12px;font-size:1rem;font-weight:700;
+  cursor:pointer;letter-spacing:1px;font-family:var(--mono);
+  transition:opacity 0.15s,box-shadow 0.15s;
+}
+.btn-start:hover{box-shadow:0 0 24px rgba(0,220,255,0.4)}
 
-        body.clutch-mode .arena {
-            border: 2px solid #ff3366;
-            box-shadow: 0 0 20px rgba(255,51,102,0.5);
-        }
+/* ── APP SHELL ──────────────────────────────────────────── */
+.app{
+  width:100%;max-width:1100px;
+  padding:16px;padding-bottom:32px;
+}
 
-        .info-bar {
-            position: sticky;
-            top: 0;
-            z-index: 100;
-            backdrop-filter: blur(16px);
-            background: rgba(0,0,0,0.6);
-            border: 1px solid rgba(0,255,255,0.2);
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(100px, auto));
-            gap: 10px;
-            margin-bottom: 20px;
-            border-radius: 60px;
-            padding: 8px 16px;
-        }
+/* ── TOP BAR ─────────────────────────────────────────────── */
+.topbar{
+  display:flex;align-items:center;justify-content:space-between;
+  gap:12px;flex-wrap:wrap;
+  background:var(--surface);border:1px solid var(--border);
+  border-radius:14px;padding:10px 18px;margin-bottom:14px;
+}
+.tb-brand{font-family:var(--mono);font-size:0.9rem;color:var(--accent);letter-spacing:4px}
+.tb-stats{display:flex;gap:20px;flex-wrap:wrap}
+.tb-stat{display:flex;flex-direction:column;align-items:center}
+.tb-stat .lbl{font-size:0.6rem;letter-spacing:2px;color:var(--muted);text-transform:uppercase}
+.tb-stat .val{font-family:var(--mono);font-size:0.95rem;color:#fff;font-weight:700}
+.tb-stat .val.accent{color:var(--accent)}
+.tb-stat .val.gold{color:var(--gold)}
+.online-dot{width:7px;height:7px;border-radius:50%;background:var(--up);
+  box-shadow:0 0 8px var(--up);animation:blink 2s infinite}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:0.4}}
 
-        .credits, .streak, .combo, .player-name {
-            font-size: clamp(0.8rem, 2vw, 1.1rem);
-            font-weight: bold;
-            font-family: monospace;
-            letter-spacing: 1px;
-        }
+/* ── HP CARDS ────────────────────────────────────────────── */
+.hp-row{display:grid;grid-template-columns:1fr auto 1fr;gap:10px;margin-bottom:14px;align-items:center}
+.hp-card{
+  background:var(--panel);border:1px solid var(--border);
+  border-radius:14px;padding:12px 16px;
+}
+.hp-card.you{border-left:2px solid var(--accent)}
+.hp-card.opp{border-right:2px solid var(--down);text-align:right}
+.hp-name{font-size:0.65rem;letter-spacing:3px;color:var(--muted);text-transform:uppercase;margin-bottom:4px}
+.hp-val{font-family:var(--mono);font-size:2rem;font-weight:700;line-height:1}
+.hp-val.you{color:var(--accent)}
+.hp-val.opp{color:var(--down)}
+.hp-track{height:3px;border-radius:2px;margin-top:8px;overflow:hidden;background:rgba(255,255,255,0.07)}
+.hp-fill{height:100%;border-radius:2px;transition:width 0.5s ease}
+.hp-fill.you{background:var(--accent)}
+.hp-fill.opp{background:var(--down)}
+.vs-badge{
+  text-align:center;font-family:var(--mono);font-size:0.7rem;
+  color:var(--muted);letter-spacing:3px;
+  padding:8px 12px;background:var(--panel);
+  border:1px solid var(--border);border-radius:10px;
+}
+.vs-badge .big{display:block;font-size:1rem;color:var(--text)}
 
-        .hp-bar {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
-            gap: clamp(8px, 2vw, 20px);
-            margin-bottom: 20px;
-        }
+/* ── CHART ───────────────────────────────────────────────── */
+.chart-wrap{
+  background:var(--panel);border:1px solid var(--border);
+  border-radius:16px;padding:12px;margin-bottom:14px;
+}
+.chart-header{
+  display:flex;align-items:center;justify-content:space-between;
+  margin-bottom:8px;flex-wrap:wrap;gap:8px;
+}
+.chart-ticker{font-family:var(--mono);font-size:1rem;color:#fff;font-weight:700}
+.chart-price{font-family:var(--mono);font-size:1.3rem;color:var(--accent);font-weight:700}
+.chart-controls{display:flex;gap:6px;align-items:center}
+.zoom-btn{
+  background:var(--surface);border:1px solid var(--border-m);color:var(--accent);
+  border-radius:8px;width:30px;height:30px;display:flex;align-items:center;
+  justify-content:center;cursor:pointer;font-size:1rem;font-family:var(--mono);
+  transition:background 0.15s;user-select:none;
+}
+.zoom-btn:hover{background:rgba(0,220,255,0.12)}
+.zoom-label{font-size:0.65rem;color:var(--muted);font-family:var(--mono);min-width:28px;text-align:center}
+canvas{
+  width:100%;height:clamp(180px,36vh,300px);display:block;
+  background:#06101a;border-radius:10px;cursor:crosshair;
+}
+.chart-footer{
+  display:flex;justify-content:space-between;align-items:center;
+  margin-top:8px;flex-wrap:wrap;gap:6px;
+}
+.timer-wrap{display:flex;align-items:baseline;gap:6px}
+.timer-num{font-family:var(--mono);font-size:1.6rem;color:#fff;font-weight:700}
+.timer-lbl{font-size:0.7rem;color:var(--muted);letter-spacing:2px}
+.event-tag{
+  font-size:0.7rem;padding:4px 10px;border-radius:20px;
+  background:rgba(0,220,255,0.08);border:1px solid var(--border-m);
+  color:var(--accent);font-family:var(--mono);letter-spacing:1px;
+}
 
-        .hp-card {
-            background: #000000aa;
-            backdrop-filter: blur(8px);
-            border-radius: 32px;
-            padding: 12px 18px;
-            text-align: center;
-            border: 1px solid cyan;
-            transition: transform 0.2s, box-shadow 0.2s;
-        }
+/* ── BET PANEL ───────────────────────────────────────────── */
+.bet-panel{
+  background:var(--panel);border:1px solid var(--border);
+  border-radius:16px;padding:14px;margin-bottom:14px;
+}
+.bet-row{display:flex;gap:8px;margin-bottom:10px;align-items:center}
+.bet-input{
+  flex:1;background:var(--surface);border:1px solid var(--border-m);
+  border-radius:10px;padding:10px 14px;color:#fff;font-family:var(--mono);
+  font-size:1rem;text-align:center;outline:none;
+  transition:border-color 0.2s;
+}
+.bet-input:focus{border-color:var(--accent)}
+.btn-dbl{
+  background:rgba(200,169,110,0.1);border:1px solid rgba(200,169,110,0.3);
+  color:var(--gold);border-radius:10px;padding:10px 14px;cursor:pointer;
+  font-size:0.75rem;font-family:var(--mono);font-weight:700;
+  letter-spacing:1px;transition:background 0.15s;white-space:nowrap;
+}
+.btn-dbl:hover{background:rgba(200,169,110,0.18)}
 
-        .hp-card:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 10px 20px rgba(0,255,255,0.15);
-        }
+.mt5-row{display:flex;gap:8px;margin-bottom:12px;flex-wrap:wrap}
+.mt5-input{
+  background:var(--surface);border:1px solid var(--border);
+  border-radius:8px;padding:6px 10px;color:var(--muted);
+  font-family:var(--mono);font-size:0.7rem;width:72px;text-align:center;
+  outline:none;
+}
+.mt5-input::placeholder{color:rgba(74,102,117,0.6)}
 
-        .hp-text {
-            font-size: clamp(0.9rem, 2vw, 1.2rem);
-            font-weight: bold;
-        }
+.dir-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px}
+.btn-dir{
+  padding:14px;border:1px solid transparent;border-radius:12px;
+  cursor:pointer;font-family:var(--mono);font-size:0.85rem;
+  font-weight:700;letter-spacing:2px;text-align:center;
+  transition:all 0.15s;
+}
+.btn-up{
+  background:var(--up-dim);border-color:rgba(0,255,170,0.3);color:var(--up);
+}
+.btn-up:hover,.btn-up.active{background:rgba(0,255,170,0.2);border-color:var(--up);box-shadow:0 0 16px rgba(0,255,170,0.15)}
+.btn-down{
+  background:var(--down-dim);border-color:rgba(255,46,108,0.3);color:var(--down);
+}
+.btn-down:hover,.btn-down.active{background:rgba(255,46,108,0.2);border-color:var(--down);box-shadow:0 0 16px rgba(255,46,108,0.15)}
 
-        .hp-value {
-            font-size: clamp(1.6rem, 4vw, 2.5rem);
-            font-weight: 800;
-            background: linear-gradient(135deg, #ffd966, #ff7b2c);
-            -webkit-background-clip: text;
-            background-clip: text;
-            color: transparent;
-            font-family: monospace;
-        }
+.adj-row{display:flex;gap:8px}
+.btn-adj{
+  flex:1;padding:8px;background:var(--surface);border:1px solid var(--border);
+  border-radius:10px;color:var(--text);cursor:pointer;font-size:0.75rem;
+  font-family:var(--mono);text-align:center;transition:border-color 0.15s;
+}
+.btn-adj:hover{border-color:var(--border-m);color:var(--accent)}
 
-        .graph-container {
-            background: #010a14;
-            border-radius: 36px;
-            padding: clamp(10px, 2vw, 20px);
-            margin-bottom: 20px;
-            border: 1px solid #2c5a6e;
-            position: relative;
-        }
+/* ── SKILLS ─────────────────────────────────────────────── */
+.skills-row{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:14px}
+.skill-btn{
+  background:var(--panel);border:1px solid var(--border);
+  border-radius:12px;padding:10px 8px;text-align:center;cursor:pointer;
+  transition:border-color 0.15s,background 0.15s;
+}
+.skill-btn:hover{border-color:var(--border-m);background:rgba(0,220,255,0.05)}
+.skill-btn .sk-icon{font-size:1.1rem;margin-bottom:3px}
+.skill-btn .sk-label{font-size:0.62rem;color:var(--muted);letter-spacing:1px;display:block}
+.skill-btn .sk-cost{font-size:0.6rem;color:var(--accent);font-family:var(--mono);margin-top:2px}
 
-        canvas {
-            width: 100%;
-            height: clamp(200px, 40vh, 320px);
-            display: block;
-            background: #03101c;
-            border-radius: 24px;
-            cursor: crosshair;
-        }
+/* ── LOG ─────────────────────────────────────────────────── */
+.log-area{
+  background:var(--surface);border:1px solid var(--border);
+  border-radius:12px;padding:10px 14px;font-family:var(--mono);
+  font-size:0.7rem;max-height:90px;overflow-y:auto;
+  margin-bottom:14px;scroll-behavior:smooth;
+}
+.log-area::-webkit-scrollbar{width:3px}
+.log-area::-webkit-scrollbar-thumb{background:var(--border-m);border-radius:2px}
+.log-entry{padding:2px 0;color:var(--muted)}
+.log-entry.ok{color:var(--up)}
+.log-entry.err{color:var(--down)}
+.log-entry.info{color:var(--accent)}
 
-        .timer-block {
-            display: flex;
-            justify-content: space-between;
-            align-items: baseline;
-            font-size: clamp(1.2rem, 3vw, 1.8rem);
-            font-weight: bold;
-            color: cyan;
-            margin: 10px 0;
-            flex-wrap: wrap;
-            gap: 10px;
-        }
+/* ── LEADERBOARD ─────────────────────────────────────────── */
+.lb-wrap{
+  background:var(--panel);border:1px solid var(--border);
+  border-radius:14px;padding:14px;max-height:200px;overflow-y:auto;
+}
+.lb-title{font-size:0.65rem;letter-spacing:4px;color:var(--muted);text-transform:uppercase;margin-bottom:10px}
+.lb-row{display:flex;align-items:center;gap:10px;padding:6px 0;border-bottom:1px solid var(--border)}
+.lb-row:last-child{border-bottom:none}
+.lb-rank{font-family:var(--mono);font-size:0.7rem;color:var(--muted);width:18px}
+.lb-rank.top{color:var(--gold)}
+.lb-name{flex:1;font-size:0.8rem;color:var(--text)}
+.lb-score{font-family:var(--mono);font-size:0.75rem;color:var(--accent)}
 
-        .direction-buttons {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: clamp(8px, 2vw, 18px);
-            margin: 15px 0;
-        }
+/* ── FLASH ANIMS ─────────────────────────────────────────── */
+.flash-win{animation:fwin 0.3s}
+@keyframes fwin{0%{box-shadow:0 0 0 0 rgba(0,255,170,0)}50%{box-shadow:0 0 40px 10px rgba(0,255,170,0.25)}100%{box-shadow:none}}
+.flash-loss{animation:floss 0.3s}
+@keyframes floss{0%{box-shadow:0 0 0 0 rgba(255,46,108,0)}50%{box-shadow:0 0 40px 10px rgba(255,46,108,0.3)}100%{box-shadow:none}}
+.clutch-pulse{animation:cpulse 0.6s ease-out}
+@keyframes cpulse{0%{border-color:rgba(0,220,255,0.12)}50%{border-color:var(--down);box-shadow:0 0 30px rgba(255,46,108,0.2)}100%{border-color:rgba(0,220,255,0.12)}}
 
-        .btn-dir {
-            position: relative;
-            overflow: hidden;
-            padding: clamp(10px, 2vw, 16px);
-            font-size: clamp(1rem, 2.5vw, 1.3rem);
-            font-weight: bold;
-            border: none;
-            border-radius: 60px;
-            cursor: pointer;
-            transition: 0.07s linear;
-        }
-
-        .btn-dir::after {
-            content: "";
-            position: absolute;
-            inset: 0;
-            background: linear-gradient(120deg, transparent, rgba(255,255,255,0.2), transparent);
-            opacity: 0;
-            transition: 0.3s;
-        }
-
-        .btn-dir:hover::after {
-            opacity: 1;
-        }
-
-        .btn-up { background: #0f5e3a; color: white; border-bottom: 3px solid #00ffaa; }
-        .btn-down { background: #7a2e2e; color: white; border-bottom: 3px solid #ff4444; }
-
-        .action-buttons, .skill-row {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(90px, 1fr));
-            gap: 10px;
-            margin-top: 12px;
-        }
-
-        .action-btn, .skill {
-            background: #1e3a4d;
-            padding: 8px;
-            border-radius: 40px;
-            font-size: 0.75rem;
-            font-weight: bold;
-            cursor: pointer;
-            text-align: center;
-            transition: 0.1s;
-        }
-
-        .status-log, .leaderboard {
-            scroll-behavior: smooth;
-        }
-
-        .status-log {
-            background: #030e1a;
-            border-radius: 24px;
-            padding: 12px;
-            font-size: 0.75rem;
-            color: #bbf0ff;
-            margin-top: 15px;
-            max-height: 100px;
-            overflow-y: auto;
-            font-family: monospace;
-        }
-
-        .leaderboard {
-            background: #030e1a;
-            border-radius: 24px;
-            padding: 12px;
-            margin-top: 15px;
-            max-height: clamp(150px, 30vh, 250px);
-            overflow-y: auto;
-        }
-
-        .modal {
-            display: none;
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0,0,0,0.85);
-            justify-content: center;
-            align-items: center;
-            z-index: 1000;
-        }
-
-        .modal-content {
-            background: #0a1a28;
-            border-radius: 32px;
-            padding: 30px;
-            max-width: 500px;
-            width: 90%;
-            text-align: center;
-            border: 2px solid cyan;
-        }
-
-        .mode-toggle {
-            display: flex;
-            gap: 15px;
-            margin: 20px 0;
-        }
-
-        .mode-btn {
-            flex: 1;
-            padding: 12px;
-            background: #1e3a4d;
-            border: 2px solid transparent;
-            border-radius: 20px;
-            cursor: pointer;
-            font-weight: bold;
-        }
-
-        .mode-btn.active {
-            border-color: #00ffaa;
-            background: #0f5e3a;
-        }
-
-        .online-indicator {
-            position: fixed;
-            top: 12px;
-            right: 12px;
-            padding: 5px 12px;
-            background: #0f5e3a;
-            border-radius: 30px;
-            font-size: 0.7rem;
-            font-weight: bold;
-            z-index: 1100;
-            backdrop-filter: blur(4px);
-        }
-
-        .fullscreen-btn {
-            position: fixed;
-            bottom: 20px;
-            right: 20px;
-            background: #1e3a4d;
-            border: none;
-            border-radius: 40px;
-            padding: 10px 16px;
-            color: white;
-            font-weight: bold;
-            cursor: pointer;
-            z-index: 1100;
-            backdrop-filter: blur(4px);
-        }
-
-        /* inputs MT5 */
-        .mt5-orders {
-            display: flex;
-            gap: 8px;
-            margin-top: 10px;
-            flex-wrap: wrap;
-        }
-        .mt5-input {
-            background: #0e1a28;
-            border: 1px solid cyan;
-            border-radius: 20px;
-            padding: 6px 12px;
-            color: cyan;
-            font-size: 0.7rem;
-            width: 70px;
-            text-align: center;
-        }
-
-        @media (max-width: 768px) and (orientation: landscape) {
-            body { align-items: flex-start; }
-            .arena { max-width: 100%; border-radius: 0; }
-            canvas { height: 140px; }
-            .hp-bar { grid-template-columns: 1fr 1fr; }
-            .info-bar { grid-template-columns: repeat(4, 1fr); font-size: 0.7rem; }
-        }
-
-        @media (max-width: 768px) {
-            .arena { border-radius: 20px; }
-            .direction-buttons { grid-template-columns: 1fr; }
-            .action-buttons { grid-template-columns: 1fr 1fr; }
-            .timer-block { flex-direction: column; align-items: center; }
-        }
-
-        .flash-red { animation: flashRed 0.2s; }
-        @keyframes flashRed { 0% { background-color: rgba(255,0,0,0); } 50% { background-color: rgba(255,0,0,0.4); } 100% { background-color: rgba(255,0,0,0); } }
-        .flash-green { animation: flashGreen 0.2s; }
-        @keyframes flashGreen { 0% { background-color: rgba(0,255,0,0); } 50% { background-color: rgba(0,255,0,0.4); } 100% { background-color: rgba(0,255,0,0); } }
-    </style>
+@media(max-width:600px){
+  .tb-stat .lbl{display:none}
+  .skills-row{grid-template-columns:repeat(3,1fr)}
+  .hp-val{font-size:1.5rem}
+}
+</style>
 </head>
 <body>
 
-<div class="online-indicator" id="onlineStatus">🔴 Conectando...</div>
-<button class="fullscreen-btn" id="fullscreenBtn">⛶ Tela cheia</button>
-
-<div class="modal" id="modeModal">
-    <div class="modal-content">
-        <h2 style="color: cyan;">📈 NYEVO TRADING</h2>
-        <div class="mode-toggle">
-            <div class="mode-btn" id="modeSolo"><div style="font-size:2rem;">🤖</div><div>VS IA</div><div style="font-size:0.7rem;">Treino offline</div></div>
-            <div class="mode-btn active" id="modePvP"><div style="font-size:2rem;">⚔️</div><div>DUELO PVP</div><div style="font-size:0.7rem;">Em breve</div></div>
-        </div>
-        <button class="modal-btn" id="startGameBtn" style="background:#0f5e3a; border:none; padding:12px 30px; border-radius:40px;">🎮 COMEÇAR</button>
-        <div id="playersOnline" style="margin-top:15px;">🌐 Carregando...</div>
+<!-- MODAL -->
+<div class="modal show" id="modeModal">
+  <div class="modal-box">
+    <div class="modal-logo">NYEVO</div>
+    <div class="modal-title">Trading Duelo</div>
+    <div class="modal-sub">Leia o mercado. Destrua o oponente.</div>
+    <div class="mode-grid">
+      <div class="mode-card active" id="modeSolo">
+        <div class="icon">🤖</div>
+        <div class="label">VS IA</div>
+        <div class="sub">Treino offline</div>
+      </div>
+      <div class="mode-card" id="modePvP">
+        <div class="icon">⚔️</div>
+        <div class="label">Duelo PvP</div>
+        <div class="sub">Em breve</div>
+      </div>
     </div>
+    <button class="btn-start" id="startBtn">INICIAR SESSÃO</button>
+  </div>
 </div>
 
-<div class="arena" id="gameApp" style="display: none;">
-    <div class="info-bar">
-        <div class="credits">💰 <span id="creditsValue">500</span></div>
-        <div class="streak">🏆 STREAK: <span id="streakSpan">0</span></div>
-        <div class="combo">⚡ COMBO: <span id="comboSpan">0</span>x</div>
-        <div class="player-name">👤 <span id="playerName">Trader</span></div>
-    </div>
+<!-- APP -->
+<div class="app" id="gameApp" style="display:none">
 
-    <div class="hp-bar">
-        <div class="hp-card"><div class="hp-text">😎 VOCÊ</div><div class="hp-value" id="myHp">100</div><div class="combo-indicator" id="myComboInd"></div></div>
-        <div class="hp-card"><div class="hp-text">🤖 <span id="iaName">AGGRESSOR</span></div><div class="hp-value" id="oppHp">100</div></div>
+  <!-- TOP BAR -->
+  <div class="topbar">
+    <div style="display:flex;align-items:center;gap:10px">
+      <div class="online-dot"></div>
+      <div class="tb-brand">NYEVO</div>
     </div>
+    <div class="tb-stats">
+      <div class="tb-stat">
+        <span class="lbl">Créditos</span>
+        <span class="val accent" id="creditsVal">500</span>
+      </div>
+      <div class="tb-stat">
+        <span class="lbl">Streak</span>
+        <span class="val gold" id="streakVal">0</span>
+      </div>
+      <div class="tb-stat">
+        <span class="lbl">Combo</span>
+        <span class="val" id="comboVal">0×</span>
+      </div>
+      <div class="tb-stat">
+        <span class="lbl">Trader</span>
+        <span class="val" id="playerName">—</span>
+      </div>
+    </div>
+  </div>
 
-    <div class="graph-container">
-        <canvas id="priceCanvas"></canvas>
-        <div class="timer-block">
-            ⏱️ <span id="timerDisplay">30</span> seg
-            <span id="eventAlert">⚡</span>
-        </div>
+  <!-- HP ROW -->
+  <div class="hp-row">
+    <div class="hp-card you">
+      <div class="hp-name">Você</div>
+      <div class="hp-val you" id="myHp">100</div>
+      <div class="hp-track"><div class="hp-fill you" id="myHpBar" style="width:100%"></div></div>
     </div>
+    <div class="vs-badge">
+      <span class="big">VS</span>
+      <span id="iaName">—</span>
+    </div>
+    <div class="hp-card opp">
+      <div class="hp-name">Adversário</div>
+      <div class="hp-val opp" id="oppHp">100</div>
+      <div class="hp-track"><div class="hp-fill opp" id="oppHpBar" style="width:100%"></div></div>
+    </div>
+  </div>
 
-    <div class="bet-panel">
-        <div style="display:flex; gap:10px; margin-bottom:10px;">
-            <input type="number" id="betAmount" class="bet-input" value="50" step="10" min="10" style="flex:2; background:#0e1a28; border:1px solid cyan; border-radius:48px; padding:clamp(10px,2vw,14px); color:#00ffe1; text-align:center;">
-            <div id="doubleBtn" class="action-btn" style="flex:1; background:#ff8800;">✖️2 DOBRAR</div>
-        </div>
-        <!-- MT5 style inputs: lote, SL, TP -->
-        <div class="mt5-orders">
-            <input type="text" id="lotSize" class="mt5-input" placeholder="Lote" value="0.01">
-            <input type="text" id="sl" class="mt5-input" placeholder="SL" value="0">
-            <input type="text" id="tp" class="mt5-input" placeholder="TP" value="0">
-        </div>
-        <div class="direction-buttons">
-            <button class="btn-dir btn-up" id="upBtn">📈 COMPRAR (SOBE)</button>
-            <button class="btn-dir btn-down" id="downBtn">📉 VENDER (DESCE)</button>
-        </div>
-        <div class="action-buttons">
-            <div id="adjustUpBtn" class="action-btn">➕ +20</div>
-            <div id="adjustDownBtn" class="action-btn">➖ -20</div>
-            <div id="reverseBtn" class="action-btn">🔄 INVERTER</div>
-        </div>
+  <!-- CHART -->
+  <div class="chart-wrap" id="chartWrap">
+    <div class="chart-header">
+      <div>
+        <div class="chart-ticker">NX/USD</div>
+      </div>
+      <div class="chart-controls">
+        <div class="zoom-btn" id="zoomOut">−</div>
+        <div class="zoom-label" id="zoomLabel">1×</div>
+        <div class="zoom-btn" id="zoomIn">+</div>
+      </div>
+      <div class="chart-price" id="chartPrice">100.0</div>
     </div>
+    <canvas id="priceCanvas"></canvas>
+    <div class="chart-footer">
+      <div class="timer-wrap">
+        <div class="timer-num" id="timerNum">30</div>
+        <div class="timer-lbl">SEG</div>
+      </div>
+      <div class="event-tag" id="eventTag">AGUARDANDO</div>
+    </div>
+  </div>
 
-    <div class="skill-row">
-        <div class="skill" id="freezeSkill">⏸️ CONGELAR (+2s)</div>
-        <div class="skill" id="revealSkill">👁️ VER TENDÊNCIA</div>
-        <div class="skill" id="lockSkill">🔒 TRAVAR ADV</div>
+  <!-- BET PANEL -->
+  <div class="bet-panel">
+    <div class="bet-row">
+      <input type="number" class="bet-input" id="betAmt" value="50" min="10" step="10">
+      <div class="btn-dbl" id="dblBtn">✕2 DOBRAR</div>
     </div>
+    <div class="mt5-row">
+      <input class="mt5-input" id="lotSize" placeholder="Lote" value="0.01">
+      <input class="mt5-input" id="slInput" placeholder="SL" value="0">
+      <input class="mt5-input" id="tpInput" placeholder="TP" value="0">
+    </div>
+    <div class="dir-grid">
+      <div class="btn-dir btn-up" id="upBtn">▲ COMPRAR</div>
+      <div class="btn-dir btn-down" id="downBtn">▼ VENDER</div>
+    </div>
+    <div class="adj-row">
+      <div class="btn-adj" id="adjUp">＋20</div>
+      <div class="btn-adj" id="adjDown">−20</div>
+      <div class="btn-adj" id="revBtn">⇄ INVERTER</div>
+    </div>
+  </div>
 
-    <div class="status-log" id="logArea">🟢 Conectando ao servidor...</div>
-    <div class="leaderboard" id="leaderboard">
-        <div style="font-weight:bold; margin-bottom:10px; color:gold;">🏆 TOP 10 RANKING GLOBAL</div>
-        <div id="leaderboardContent">Carregando...</div>
+  <!-- SKILLS -->
+  <div class="skills-row">
+    <div class="skill-btn" id="freezeSkill">
+      <div class="sk-icon">⏸</div>
+      <span class="sk-label">CONGELAR</span>
+      <span class="sk-cost">50 cr · +2s</span>
     </div>
+    <div class="skill-btn" id="revealSkill">
+      <div class="sk-icon">◎</div>
+      <span class="sk-label">TENDÊNCIA</span>
+      <span class="sk-cost">100 cr</span>
+    </div>
+    <div class="skill-btn" id="lockSkill">
+      <div class="sk-icon">⊘</div>
+      <span class="sk-label">TRAVAR ADV</span>
+      <span class="sk-cost">80 cr</span>
+    </div>
+  </div>
+
+  <!-- LOG -->
+  <div class="log-area" id="logArea"></div>
+
+  <!-- LEADERBOARD -->
+  <div class="lb-wrap">
+    <div class="lb-title">Ranking Global</div>
+    <div id="lbContent">
+      <div class="lb-row"><span class="lb-rank top">1</span><span class="lb-name">carregando...</span></div>
+    </div>
+  </div>
 </div>
 
 <script type="module">
+// ── FIREBASE (placeholder – substitua os dados reais) ──────────
 import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js';
 import { getAuth, signInAnonymously } from 'https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js';
-import { getFirestore, doc, setDoc, getDoc, updateDoc, collection, query, orderBy, limit, onSnapshot, serverTimestamp, increment } from 'https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js';
+import { getFirestore, doc, setDoc, getDoc, updateDoc,
+         collection, query, orderBy, limit, onSnapshot,
+         serverTimestamp, increment }
+  from 'https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js';
 
-// ========== CONFIGURAÇÃO FIREBASE (SUBSTITUA PELOS SEUS DADOS) ==========
 const firebaseConfig = {
-    apiKey: "SUA_API_KEY_AQUI",
-    authDomain: "seu-projeto.firebaseapp.com",
-    projectId: "seu-projeto-id",
-    storageBucket: "seu-projeto.appspot.com",
-    messagingSenderId: "123456789",
-    appId: "1:123456789:web:abc123def456"
+  apiKey:"SUA_API_KEY",authDomain:"seu-projeto.firebaseapp.com",
+  projectId:"seu-projeto-id",storageBucket:"seu-projeto.appspot.com",
+  messagingSenderId:"123456789",appId:"1:123456789:web:abc123"
 };
 
-const app = initializeApp(firebaseConfig);
-const auth = getAuth(app);
-const db = getFirestore(app);
+let db, auth, currentUser;
+try {
+  const app = initializeApp(firebaseConfig);
+  auth = getAuth(app); db = getFirestore(app);
+} catch(e) { console.warn('Firebase offline, modo solo.'); }
 
-let currentUser = null;
-let gameMode = 'solo';
-
+// ── IA PERFIS ──────────────────────────────────────────────────
 const iaPerfis = {
-    agressivo: { nome: "🔥 AGRESSOR", probApostaDir: 0.85, rangeAposta: [60,150], desc: "aposta alto" },
-    conservador: { nome: "🛡️ CONSERVADOR", probApostaDir: 0.6, rangeAposta: [20,60], desc: "cauteloso" },
-    troll: { nome: "🎭 TROLL", probApostaDir: 0.5, rangeAposta: [30,90], desc: "blefador" },
-    estrategista: { nome: "🧠 ESTRATEGISTA", probApostaDir: 0.7, rangeAposta: [40,100], desc: "analítico" }
+  agressivo:   { nome:"AGRESSOR",   prob:0.85, range:[60,150] },
+  conservador: { nome:"CONSERVADOR",prob:0.60, range:[20,60]  },
+  troll:       { nome:"TROLL",      prob:0.50, range:[30,90]  },
+  estrategista:{ nome:"ESTRATEGISTA",prob:0.70,range:[40,100] }
 };
 let iaAtual = { ...iaPerfis.agressivo };
 
-let gameState = {
-    myHP: 100, oppHP: 100, credits: 500, streak: 0, combo: 0,
-    rodadaAtiva: false, tempoRestante: 30, tendenciaReal: null,
-    apostaJogador: null, apostaOponente: null,
-    oponenteTravado: false, intervaloId: null, clutchAtivo: false,
-    direcaoAtual: null
-};
-
-// ========== GRÁFICO DE VELAS (MT5 STYLE) ==========
-const canvas = document.getElementById('priceCanvas');
-const ctx = canvas.getContext('2d');
-
-let candles = [];           // array de velas: { open, high, low, close, timestamp }
-let currentCandle = null;
-let lastTimestamp = 0;
-let animationFrame = null;
-let offsetX = 0;
-let mouseX = null;
-
-const CANDLE_INTERVAL = 5000; // 5 segundos por vela
-let lastCandleTime = 0;
-let precoAtual = 100;
-
-function initCandles() {
-    candles = [];
-    const now = Date.now();
-    lastCandleTime = now - CANDLE_INTERVAL;
-    precoAtual = 100;
-    // criar primeira vela parcial
-    currentCandle = {
-        open: precoAtual,
-        high: precoAtual,
-        low: precoAtual,
-        close: precoAtual,
-        timestamp: now
-    };
-}
-
-function updatePrice(move) {
-    precoAtual += move;
-    precoAtual = Math.max(55, Math.min(155, precoAtual));
-    const now = Date.now();
-    
-    if (!currentCandle) {
-        currentCandle = {
-            open: precoAtual,
-            high: precoAtual,
-            low: precoAtual,
-            close: precoAtual,
-            timestamp: now
-        };
-        lastCandleTime = now;
-    }
-    
-    // atualiza vela atual
-    currentCandle.high = Math.max(currentCandle.high, precoAtual);
-    currentCandle.low = Math.min(currentCandle.low, precoAtual);
-    currentCandle.close = precoAtual;
-    
-    // se passou 5 segundos, finaliza a vela e cria nova
-    if (now - lastCandleTime >= CANDLE_INTERVAL) {
-        if (currentCandle) {
-            candles.push({ ...currentCandle });
-        }
-        // limitar histórico (últimas 100 velas)
-        if (candles.length > 100) candles.shift();
-        
-        currentCandle = {
-            open: precoAtual,
-            high: precoAtual,
-            low: precoAtual,
-            close: precoAtual,
-            timestamp: now
-        };
-        lastCandleTime = now;
-    }
-    
-    // se não houver candles e temos uma vela atual, adiciona como primeira para visualização
-    if (candles.length === 0 && currentCandle) {
-        candles.push({ ...currentCandle });
-    }
-}
-
-function resizeCanvas() {
-    const rect = canvas.getBoundingClientRect();
-    canvas.width = rect.width * devicePixelRatio;
-    canvas.height = rect.height * devicePixelRatio;
-    ctx.setTransform(1,0,0,1,0,0);
-    ctx.scale(devicePixelRatio, devicePixelRatio);
-    drawCandles();
-}
-window.addEventListener('resize', () => { resizeCanvas(); drawCandles(); });
-
-function drawCandles() {
-    if (!ctx) return;
-    const w = canvas.clientWidth;
-    const h = canvas.clientHeight;
-    ctx.clearRect(0, 0, w, h);
-    
-    // juntar velas fechadas + vela atual (se existir)
-    let allCandles = [...candles];
-    if (currentCandle && currentCandle.open) allCandles.push(currentCandle);
-    if (allCandles.length === 0) return;
-    
-    // range dinâmico
-    let minPrice = Infinity, maxPrice = -Infinity;
-    for (let c of allCandles) {
-        minPrice = Math.min(minPrice, c.low);
-        maxPrice = Math.max(maxPrice, c.high);
-    }
-    const padding = 2;
-    minPrice -= padding;
-    maxPrice += padding;
-    const priceRange = maxPrice - minPrice || 1;
-    
-    // largura da vela e espaçamento
-    const candleWidth = Math.max(4, (w / allCandles.length) * 0.7);
-    const spacing = w / allCandles.length;
-    
-    // rolagem visual (offset aumenta lentamente)
-    offsetX = (offsetX + 0.2) % (spacing * 2);
-    
-    // desenhar grid
-    ctx.strokeStyle = "rgba(0,255,255,0.1)";
-    ctx.lineWidth = 1;
-    for (let i=0; i<=4; i++) {
-        let y = (h / 4) * i;
-        ctx.beginPath();
-        ctx.moveTo(0, y);
-        ctx.lineTo(w, y);
-        ctx.stroke();
-    }
-    
-    // desenhar velas
-    for (let i=0; i<allCandles.length; i++) {
-        const c = allCandles[i];
-        const x = i * spacing + spacing/2 - offsetX;
-        if (x + candleWidth/2 < 0 || x - candleWidth/2 > w) continue;
-        
-        const yOpen = h - ((c.open - minPrice) / priceRange) * (h - 20) - 10;
-        const yClose = h - ((c.close - minPrice) / priceRange) * (h - 20) - 10;
-        const yHigh = h - ((c.high - minPrice) / priceRange) * (h - 20) - 10;
-        const yLow = h - ((c.low - minPrice) / priceRange) * (h - 20) - 10;
-        
-        const isBullish = c.close >= c.open;
-        ctx.fillStyle = isBullish ? "rgba(0,255,100,0.6)" : "rgba(255,50,50,0.6)";
-        ctx.strokeStyle = isBullish ? "#0f0" : "#f00";
-        ctx.lineWidth = 1;
-        
-        // corpo da vela
-        const bodyTop = Math.min(yOpen, yClose);
-        const bodyBottom = Math.max(yOpen, yClose);
-        const bodyHeight = Math.max(1, bodyBottom - bodyTop);
-        ctx.fillRect(x - candleWidth/2, bodyTop, candleWidth, bodyHeight);
-        ctx.strokeRect(x - candleWidth/2, bodyTop, candleWidth, bodyHeight);
-        
-        // pavio (high-low)
-        ctx.beginPath();
-        ctx.moveTo(x, yHigh);
-        ctx.lineTo(x, yLow);
-        ctx.stroke();
-        
-        // volume fake (opcional)
-        const volumeHeight = (c.close - c.open) * 2;
-        ctx.fillStyle = "rgba(0,255,255,0.2)";
-        ctx.fillRect(x - candleWidth/4, h - 5, candleWidth/2, Math.min(10, Math.abs(volumeHeight)));
-    }
-    
-    // linha de preço atual
-    const yPrice = h - ((precoAtual - minPrice) / priceRange) * (h - 20) - 10;
-    ctx.beginPath();
-    ctx.strokeStyle = "#00ffff";
-    ctx.lineWidth = 1.5;
-    ctx.setLineDash([5,5]);
-    ctx.moveTo(0, yPrice);
-    ctx.lineTo(w, yPrice);
-    ctx.stroke();
-    ctx.setLineDash([]);
-    
-    // escala lateral com preços
-    ctx.fillStyle = "#00ffaa";
-    ctx.font = "10px monospace";
-    for (let i=0; i<=4; i++) {
-        let price = minPrice + (maxPrice - minPrice) * (i/4);
-        let y = h - (i/4)*h;
-        ctx.fillText(price.toFixed(1), 5, y);
-    }
-    ctx.fillText(precoAtual.toFixed(1), w - 40, yPrice-2);
-    
-    // crosshair se mouseX definido
-    if (mouseX !== null && mouseX >= 0 && mouseX <= w) {
-        ctx.strokeStyle = "rgba(255,255,255,0.3)";
-        ctx.lineWidth = 1;
-        ctx.beginPath();
-        ctx.moveTo(mouseX, 0);
-        ctx.lineTo(mouseX, h);
-        ctx.stroke();
-        // preço no crosshair
-        let yCross = mouseYToPrice(mouseX, minPrice, maxPrice, h);
-        ctx.fillStyle = "white";
-        ctx.fillText(yCross.toFixed(1), mouseX+5, 15);
-    }
-}
-
-function mouseYToPrice(mouseX, minP, maxP, h) {
-    // simplificado: apenas para crosshair vertical
-    return minP + (maxP - minP) * (1 - (mouseY / h));
-}
-let mouseY = 0;
-canvas.addEventListener('mousemove', (e) => {
-    const rect = canvas.getBoundingClientRect();
-    mouseX = e.clientX - rect.left;
-    mouseY = e.clientY - rect.top;
-    drawCandles();
-});
-canvas.addEventListener('mouseleave', () => { mouseX = null; drawCandles(); });
-
-// ========== SIMULAÇÃO DE PREÇO (TICK A CADA 50ms) ==========
-let fakeSignalAtivo = false;
-let lastMoveTime = 0;
-
-function startPriceSimulation() {
-    if (animationFrame) cancelAnimationFrame(animationFrame);
-    initCandles();
-    let lastTick = 0;
-    function tick(now) {
-        if (!gameState.rodadaAtiva) return;
-        if (now - lastTick >= 50) { // TICK_RATE = 50ms
-            lastTick = now;
-            let trend = (gameState.tendenciaReal === "up") ? 1 : -1;
-            let noise = (Math.random() - 0.5) * 4;
-            let move = trend * (0.5 + Math.random() * 1.2) + noise * 0.6;
-            if (Math.random() < 0.3 && !fakeSignalAtivo) {
-                fakeSignalAtivo = true;
-                move *= -2.2;
-                addLog("⚠️ Falso rompimento!", true);
-                setTimeout(() => fakeSignalAtivo = false, 800);
-            }
-            if (Math.random() < 0.15) {
-                move *= (Math.random() < 0.5 ? 2.5 : -2.5);
-                addLog("⚡ SPIKE!", true);
-            }
-            updatePrice(move);
-            drawCandles();
-        }
-        animationFrame = requestAnimationFrame(tick);
-    }
-    animationFrame = requestAnimationFrame(tick);
-}
-
-// ========== RESTO DO JOGO (MANTIDO, COM PEQUENAS ADAPTAÇÕES) ==========
-function addLog(msg, isError = false) {
-    const logDiv = document.getElementById('logArea');
-    const div = document.createElement('div');
-    div.innerHTML = isError ? `⚠️ ${msg}` : `🔹 ${msg}`;
-    div.style.color = isError ? '#ff8888' : '#bbf0ff';
-    logDiv.appendChild(div);
-    logDiv.scrollTop = logDiv.scrollHeight;
-    if(logDiv.children.length > 8) logDiv.removeChild(logDiv.children[0]);
-}
-
-function vibrate(ms) { if(navigator.vibrate) navigator.vibrate([ms,30,ms]); }
-function updateUI() {
-    document.getElementById('myHp').innerText = Math.max(0, gameState.myHP);
-    document.getElementById('oppHp').innerText = Math.max(0, gameState.oppHP);
-    document.getElementById('creditsValue').innerText = Math.floor(gameState.credits);
-    document.getElementById('streakSpan').innerText = gameState.streak;
-    document.getElementById('comboSpan').innerText = gameState.combo;
-    document.getElementById('iaName').innerText = gameMode === 'pvp' ? "OPONENTE" : iaAtual.nome;
-}
-function aplicarFeedbackVisual(tipo) {
-    const arena = document.querySelector('.arena');
-    if(tipo === 'dano') { arena.classList.add('flash-red'); setTimeout(()=>arena.classList.remove('flash-red'),200); vibrate(100); }
-    else if(tipo === 'ganho') { arena.classList.add('flash-green'); setTimeout(()=>arena.classList.remove('flash-green'),200); vibrate(50); }
-    else if(tipo === 'clutch') { document.body.classList.add('clutch-mode'); setTimeout(()=>document.body.classList.remove('clutch-mode'),1000); vibrate(200); }
-}
-
-// Firebase (mesmo código, com fallback)
-async function loginUser() { /* manter igual ao original */ return true; }
-async function loadOrCreateProfile() {}
-async function saveProgress() {}
-async function updateWinLoss(won) {}
-function loadLeaderboard() {}
-
-function escolherPerfilIA() {
-    const perfis = Object.values(iaPerfis);
-    iaAtual = { ...perfis[Math.floor(Math.random() * perfis.length)] };
-    addLog(`🤖 NOVO ADV: ${iaAtual.nome} - ${iaAtual.desc}`);
+function escolherIA() {
+  const keys = Object.keys(iaPerfis);
+  iaAtual = { ...iaPerfis[keys[Math.floor(Math.random()*keys.length)]] };
+  document.getElementById('iaName').textContent = iaAtual.nome;
+  log(`Novo adversário: ${iaAtual.nome}`, 'info');
 }
 function apostaIA() {
-    let direcao = Math.random() < iaAtual.probApostaDir ? gameState.tendenciaReal : (gameState.tendenciaReal === "up" ? "down" : "up");
-    let valor = Math.floor(Math.random() * (iaAtual.rangeAposta[1] - iaAtual.rangeAposta[0]) + iaAtual.rangeAposta[0]);
-    return { direcao, valor };
-}
-function ativarEventoAleatorio() {
-    if(Math.random() > 0.25) return;
-    const eventos = [
-        { nome:"📉 FLASH CRASH", efeito:()=>{ gameState.tendenciaReal = (gameState.tendenciaReal === "up") ? "down" : "up"; addLog("⚡ FLASH CRASH! Tendência invertida!"); } },
-        { nome:"🐋 BALEIA", efeito:()=>{ if(!gameState.apostaOponente && gameMode === 'solo') { gameState.apostaOponente = apostaIA(); addLog("🐋 Baleia entrou! Oponente fez aposta extra!"); } } },
-        { nome:"🔥 FOMO", efeito:()=>{ if(gameState.apostaJogador) { gameState.apostaJogador.valor = Math.min(gameState.credits, Math.floor(gameState.apostaJogador.valor*1.6)); addLog("🔥 FOMO! Aposta aumentada!"); } } },
-        { nome:"💀 LIQUIDAÇÃO", efeito:()=>{ if(!gameState.apostaJogador && gameState.tempoRestante>8) { gameState.myHP = Math.max(1, gameState.myHP-15); addLog("💀 Liquidação! -15 HP!"); } } }
-    ];
-    let ev = eventos[Math.floor(Math.random()*eventos.length)];
-    ev.efeito();
-    document.getElementById('eventAlert').innerText = ev.nome;
-    setTimeout(()=>{ if(gameState.rodadaAtiva) document.getElementById('eventAlert').innerText = "⚡"; }, 2000);
-    updateUI();
-}
-async function encerrarRodada() {
-    if(!gameState.rodadaAtiva) return;
-    gameState.rodadaAtiva = false;
-    cancelAnimationFrame(animationFrame);
-    clearInterval(gameState.intervaloId);
-    let acertouJogador = (gameState.apostaJogador && gameState.apostaJogador.direcao === gameState.tendenciaReal);
-    let acertouOponente = (gameState.apostaOponente && gameState.apostaOponente.direcao === gameState.tendenciaReal);
-    let valorJ = gameState.apostaJogador ? gameState.apostaJogador.valor : 0;
-    let valorO = gameState.apostaOponente ? gameState.apostaOponente.valor : 0;
-    let danoMulti = 1 + (gameState.combo * 0.2);
-    danoMulti = Math.min(danoMulti, 2.2);
-    addLog(`🔔 RESULTADO: ${gameState.tendenciaReal === "up" ? "ALTA 🔼" : "BAIXA 🔽"}`);
-    let won = false;
-    if(acertouJogador && !acertouOponente) {
-        let ganho = valorO;
-        let dano = Math.floor(valorJ * danoMulti);
-        gameState.credits += ganho;
-        gameState.oppHP -= dano;
-        gameState.combo++;
-        addLog(`🎉 ACERTOU! +${ganho} créditos, dano ${danoMulti.toFixed(1)}x: -${dano} HP`);
-        gameState.streak++;
-        aplicarFeedbackVisual('ganho');
-        won = true;
-    } else if(!acertouJogador && acertouOponente) {
-        gameState.credits -= valorJ;
-        gameState.myHP -= valorO;
-        gameState.combo = 0;
-        addLog(`💀 ERROU! Perdeu ${valorJ} créditos e -${valorO} HP`);
-        gameState.streak = 0;
-        aplicarFeedbackVisual('dano');
-    } else if(acertouJogador && acertouOponente) {
-        gameState.credits += Math.floor(valorO * 0.4);
-        addLog(`🤝 Empate! +${Math.floor(valorO*0.4)} créditos`);
-        gameState.combo = Math.max(0, gameState.combo-1);
-    } else {
-        gameState.credits -= Math.min(valorJ, gameState.credits);
-        gameState.combo = 0;
-        addLog(`💥 Ambos erraram!`);
-        gameState.streak = 0;
-    }
-    gameState.myHP = Math.min(100, Math.max(0, gameState.myHP));
-    gameState.oppHP = Math.min(100, Math.max(0, gameState.oppHP));
-    gameState.credits = Math.max(0, gameState.credits);
-    updateUI();
-    await saveProgress();
-    if(won) await updateWinLoss(true);
-    if(gameState.myHP <= 0) {
-        addLog("☠️ VOCÊ MORREU! Fim de jogo.");
-        await updateWinLoss(false);
-        document.getElementById('upBtn').disabled = document.getElementById('downBtn').disabled = true;
-        setTimeout(() => location.reload(), 3000);
-    } else if(gameState.oppHP <= 0) {
-        addLog("🏆 VITÓRIA! +200 créditos bônus!");
-        gameState.credits += 200;
-        gameState.oppHP = 100;
-        gameState.myHP = Math.min(100, gameState.myHP+15);
-        if(gameMode === 'solo') escolherPerfilIA();
-        await saveProgress();
-        updateUI();
-    }
-    setTimeout(() => { if(gameState.myHP > 0 && gameState.oppHP > 0) iniciarRodada(); }, 2800);
-}
-function fazerAposta(direcao) {
-    if(!gameState.rodadaAtiva) return addLog("Rodada não iniciada!");
-    if(gameState.oponenteTravado) return addLog("🔒 Você está travado!");
-    let valor = parseInt(document.getElementById('betAmount').value);
-    if(valor < 10) return addLog("Mínimo 10");
-    if(valor > gameState.credits) return addLog("Créditos insuficientes");
-    gameState.apostaJogador = { direcao, valor };
-    gameState.direcaoAtual = direcao;
-    addLog(`✅ Aposta ${valor} em ${direcao === "up" ? "ALTA" : "BAIXA"}`);
-    vibrate(30);
-    document.getElementById('upBtn').style.opacity = direcao === "up" ? "1" : "0.5";
-    document.getElementById('downBtn').style.opacity = direcao === "down" ? "1" : "0.5";
-    if(!gameState.apostaOponente && gameMode === 'solo') {
-        gameState.apostaOponente = apostaIA();
-        addLog(`🤖 ${iaAtual.nome} apostou ${gameState.apostaOponente.valor} em ${gameState.apostaOponente.direcao === "up" ? "ALTA" : "BAIXA"}`);
-    }
-}
-function ajustarAposta(delta) {
-    if(!gameState.rodadaAtiva || !gameState.apostaJogador) return addLog("Aposte primeiro!");
-    let novo = gameState.apostaJogador.valor + delta;
-    if(novo < 10) novo = 10;
-    if(novo > gameState.credits) novo = gameState.credits;
-    gameState.apostaJogador.valor = novo;
-    document.getElementById('betAmount').value = novo;
-    addLog(`✏️ Aposta ajustada para ${novo}`);
-}
-function dobrarAposta() {
-    if(!gameState.rodadaAtiva || !gameState.apostaJogador) return;
-    let novo = gameState.apostaJogador.valor * 2;
-    if(novo > gameState.credits) novo = gameState.credits;
-    gameState.apostaJogador.valor = novo;
-    document.getElementById('betAmount').value = novo;
-    addLog(`💥 DOBRADA! Nova aposta: ${novo}`);
-    vibrate(40);
-}
-function inverterDirecao() {
-    if(!gameState.rodadaAtiva || !gameState.apostaJogador) return;
-    gameState.apostaJogador.direcao = gameState.apostaJogador.direcao === "up" ? "down" : "up";
-    gameState.direcaoAtual = gameState.apostaJogador.direcao;
-    addLog(`🔄 Direção invertida para ${gameState.apostaJogador.direcao === "up" ? "ALTA" : "BAIXA"}`);
-    document.getElementById('upBtn').style.opacity = gameState.apostaJogador.direcao === "up" ? "1" : "0.5";
-    document.getElementById('downBtn').style.opacity = gameState.apostaJogador.direcao === "down" ? "1" : "0.5";
-}
-function congelar() { if(!gameState.rodadaAtiva) return; if(gameState.credits < 50) return addLog("Precisa 50 créditos"); gameState.credits -= 50; gameState.tempoRestante += 2; document.getElementById('timerDisplay').innerText = gameState.tempoRestante; addLog("⏸️ +2 segundos!"); updateUI(); vibrate(30); }
-function revelarTendencia() { if(!gameState.rodadaAtiva) return; if(gameState.credits < 100) return addLog("Precisa 100 créditos"); gameState.credits -= 100; addLog(`👁️ TENDÊNCIA: ${gameState.tendenciaReal === "up" ? "📈 ALTA" : "📉 BAIXA"}`); updateUI(); vibrate(30); }
-function travarAdversario() { if(!gameState.rodadaAtiva) return; if(gameState.credits < 80) return addLog("Precisa 80 créditos"); gameState.credits -= 80; gameState.oponenteTravado = true; addLog("🔒 Adversário travado por 5s!"); setTimeout(() => { gameState.oponenteTravado = false; addLog("🔓 Liberado"); }, 5000); updateUI(); vibrate(50); }
-function iniciarRodada() {
-    if(gameState.rodadaAtiva) return;
-    gameState.tendenciaReal = Math.random() < 0.65 ? "up" : "down";
-    gameState.apostaJogador = null;
-    gameState.apostaOponente = null;
-    gameState.tempoRestante = 30;
-    gameState.clutchAtivo = false;
-    gameState.rodadaAtiva = true;
-    document.getElementById('timerDisplay').innerText = "30";
-    document.getElementById('eventAlert').innerText = "⚡ NOVA RODADA";
-    addLog("📊 NOVA RODADA");
-    startPriceSimulation();
-    if(gameState.intervaloId) clearInterval(gameState.intervaloId);
-    gameState.intervaloId = setInterval(() => {
-        if(!gameState.rodadaAtiva) return;
-        if(gameState.tempoRestante <= 1) { clearInterval(gameState.intervaloId); encerrarRodada(); }
-        else { gameState.tempoRestante--; document.getElementById('timerDisplay').innerText = gameState.tempoRestante; if(gameState.tempoRestante === 5) document.getElementById('eventAlert').innerText = "🔥 CLUTCH!"; if(gameState.tempoRestante <= 3 && !gameState.clutchAtivo) { gameState.clutchAtivo = true; aplicarFeedbackVisual('clutch'); addLog("🔥 MODO CLUTCH ATIVADO!"); } if(gameState.tempoRestante % 10 === 0) ativarEventoAleatorio(); }
-    }, 1000);
+  const dir = Math.random() < iaAtual.prob
+    ? gs.tendencia
+    : (gs.tendencia==='up'?'down':'up');
+  const v = Math.floor(Math.random()*(iaAtual.range[1]-iaAtual.range[0])+iaAtual.range[0]);
+  return { dir, val: v };
 }
 
-// Event listeners
-document.getElementById('upBtn').onclick = () => fazerAposta("up");
-document.getElementById('downBtn').onclick = () => fazerAposta("down");
-document.getElementById('doubleBtn').onclick = dobrarAposta;
-document.getElementById('adjustUpBtn').onclick = () => ajustarAposta(20);
-document.getElementById('adjustDownBtn').onclick = () => ajustarAposta(-20);
-document.getElementById('reverseBtn').onclick = inverterDirecao;
-document.getElementById('freezeSkill').onclick = congelar;
-document.getElementById('revealSkill').onclick = revelarTendencia;
-document.getElementById('lockSkill').onclick = travarAdversario;
-document.getElementById('fullscreenBtn').onclick = async () => { if (!document.fullscreenElement) { await document.documentElement.requestFullscreen(); try { screen.orientation?.lock("landscape"); } catch(e) {} } else { document.exitFullscreen(); } };
-
-// Modal e inicialização
-const modeModalDiv = document.getElementById('modeModal');
-const modeSoloBtnDiv = document.getElementById('modeSolo');
-const modePvPBtnDiv = document.getElementById('modePvP');
-const startBtn = document.getElementById('startGameBtn');
-modeSoloBtnDiv.onclick = () => { gameMode = 'solo'; modeSoloBtnDiv.classList.add('active'); modePvPBtnDiv.classList.remove('active'); };
-modePvPBtnDiv.onclick = () => { gameMode = 'pvp'; modePvPBtnDiv.classList.add('active'); modeSoloBtnDiv.classList.remove('active'); };
-startBtn.onclick = async () => {
-    // Forçar modo solo se falhar conexão
-    await loginUser().catch(()=>{});
-    modeModalDiv.style.display = 'none';
-    document.getElementById('gameApp').style.display = 'block';
-    if(gameMode === 'solo') escolherPerfilIA();
-    iniciarJogo();
+// ── ESTADO ─────────────────────────────────────────────────────
+let gs = {
+  myHP:100, oppHP:100, credits:500,
+  streak:0, combo:0,
+  rodada:false, tempo:30, tendencia:null,
+  betPlayer:null, betOpp:null,
+  travado:false, clutch:false,
+  intervalId:null
 };
-function iniciarJogo() {
-    gameState = {
-        myHP: gameState.myHP || 100, oppHP: 100, credits: gameState.credits || 500,
-        streak: gameState.streak || 0, combo: 0, rodadaAtiva: false, tempoRestante: 30,
-        tendenciaReal: null, apostaJogador: null, apostaOponente: null, oponenteTravado: false,
-        intervaloId: null, clutchAtivo: false
-    };
-    updateUI();
-    iniciarRodada();
+let gameMode = 'solo';
+
+// ── CHART ──────────────────────────────────────────────────────
+const canvas = document.getElementById('priceCanvas');
+const ctx = canvas.getContext('2d');
+let candles = [], currentCandle = null;
+let precoAtual = 100;
+const TICK = 50, CANDLE_MS = 5000;
+let lastCandleTime = 0, rafId = null, lastTick = 0;
+
+// ZOOM
+let zoomLevel = 1; // 1 = normal, 2 = 2x (maiores), 0.5 = afastado
+const ZOOM_STEPS = [0.4, 0.6, 1, 1.5, 2.5, 4];
+let zoomIdx = 2;
+document.getElementById('zoomIn').onclick = () => {
+  if(zoomIdx < ZOOM_STEPS.length-1){ zoomIdx++; zoomLevel=ZOOM_STEPS[zoomIdx]; updateZoomLabel(); drawCandles(); }
+};
+document.getElementById('zoomOut').onclick = () => {
+  if(zoomIdx > 0){ zoomIdx--; zoomLevel=ZOOM_STEPS[zoomIdx]; updateZoomLabel(); drawCandles(); }
+};
+function updateZoomLabel(){
+  document.getElementById('zoomLabel').textContent = zoomLevel+'×';
 }
-window.addEventListener('load', () => {
-    modeModalDiv.style.display = 'flex';
-    resizeCanvas();
-    // fallback para modal caso Firebase falhe
-    setTimeout(() => { if (modeModalDiv.style.display !== 'flex') modeModalDiv.style.display = 'flex'; }, 2000);
+
+function resizeCanvas(){
+  const r = canvas.getBoundingClientRect();
+  canvas.width = r.width * devicePixelRatio;
+  canvas.height = r.height * devicePixelRatio;
+  ctx.scale(devicePixelRatio,devicePixelRatio);
+}
+window.addEventListener('resize', ()=>{ resizeCanvas(); drawCandles(); });
+
+function initCandles(){
+  candles=[]; currentCandle=null; precoAtual=100;
+  const now=Date.now(); lastCandleTime=now;
+  currentCandle={ open:100,high:100,low:100,close:100,time:now };
+}
+
+function updatePrice(move){
+  precoAtual = Math.max(50, Math.min(160, precoAtual+move));
+  const now = Date.now();
+  if(!currentCandle){
+    currentCandle={ open:precoAtual,high:precoAtual,low:precoAtual,close:precoAtual,time:now };
+    lastCandleTime=now; return;
+  }
+  currentCandle.high = Math.max(currentCandle.high, precoAtual);
+  currentCandle.low  = Math.min(currentCandle.low,  precoAtual);
+  currentCandle.close = precoAtual;
+  if(now - lastCandleTime >= CANDLE_MS){
+    candles.push({...currentCandle});
+    if(candles.length>120) candles.shift();
+    currentCandle={ open:precoAtual,high:precoAtual,low:precoAtual,close:precoAtual,time:now };
+    lastCandleTime=now;
+  }
+}
+
+let mouseX=null, mouseY=null;
+canvas.addEventListener('mousemove',e=>{
+  const r=canvas.getBoundingClientRect();
+  mouseX=e.clientX-r.left; mouseY=e.clientY-r.top; drawCandles();
 });
+canvas.addEventListener('mouseleave',()=>{ mouseX=null; drawCandles(); });
+
+function drawCandles(){
+  const W=canvas.clientWidth, H=canvas.clientHeight;
+  ctx.clearRect(0,0,W,H);
+
+  const all=[...candles];
+  if(currentCandle) all.push(currentCandle);
+  if(!all.length) return;
+
+  // ZOOM: candleWidth & spacing control visibility
+  // zoomLevel > 1 → fewer candles visible (zoom in), < 1 → more visible (zoom out)
+  const BASE_WIDTH = W / 40;                     // base candles on screen ~40
+  const candleWidth = Math.max(2, BASE_WIDTH * zoomLevel * 0.65);
+  const spacing     = Math.max(3, BASE_WIDTH * zoomLevel);
+  // how many candles fit?
+  const visible = Math.min(all.length, Math.floor(W / spacing) + 2);
+  const start   = Math.max(0, all.length - visible);
+  const view    = all.slice(start);
+
+  let minP=Infinity, maxP=-Infinity;
+  for(const c of view){ minP=Math.min(minP,c.low); maxP=Math.max(maxP,c.high); }
+  const pad = (maxP-minP)*0.1 || 2;
+  minP-=pad; maxP+=pad;
+  const priceRange = maxP-minP || 1;
+
+  // background grid
+  ctx.strokeStyle='rgba(0,220,255,0.05)';
+  ctx.lineWidth=1;
+  for(let i=0;i<=5;i++){
+    const y=H*(i/5);
+    ctx.beginPath(); ctx.moveTo(0,y); ctx.lineTo(W,y); ctx.stroke();
+  }
+  for(let i=0;i<=8;i++){
+    const x=W*(i/8);
+    ctx.beginPath(); ctx.moveTo(x,0); ctx.lineTo(x,H); ctx.stroke();
+  }
+
+  const toY = p => H - ((p-minP)/priceRange)*(H-24) - 12;
+
+  // draw each candle in view
+  view.forEach((c,i)=>{
+    const x = i*spacing + spacing*0.5;
+    const yO=toY(c.open), yC=toY(c.close), yH=toY(c.high), yL=toY(c.low);
+    const bull = c.close >= c.open;
+    const col  = bull ? '#00ffaa' : '#ff2e6c';
+    const dimCol = bull ? 'rgba(0,255,170,0.15)' : 'rgba(255,46,108,0.15)';
+
+    // wick
+    ctx.strokeStyle = col;
+    ctx.lineWidth = Math.max(0.5, zoomLevel*0.5);
+    ctx.globalAlpha = 0.7;
+    ctx.beginPath(); ctx.moveTo(x,yH); ctx.lineTo(x,yL); ctx.stroke();
+    ctx.globalAlpha = 1;
+
+    // body
+    const bTop=Math.min(yO,yC), bH=Math.max(1,Math.abs(yC-yO));
+    ctx.fillStyle = i===view.length-1 ? col : dimCol;
+    ctx.strokeStyle = col;
+    ctx.lineWidth = 0.8;
+    ctx.fillRect(x-candleWidth/2, bTop, candleWidth, bH);
+    ctx.strokeRect(x-candleWidth/2, bTop, candleWidth, bH);
+  });
+
+  // current price line
+  const yNow = toY(precoAtual);
+  ctx.setLineDash([4,4]);
+  ctx.strokeStyle = 'rgba(0,220,255,0.5)';
+  ctx.lineWidth = 0.8;
+  ctx.beginPath(); ctx.moveTo(0,yNow); ctx.lineTo(W,yNow); ctx.stroke();
+  ctx.setLineDash([]);
+
+  // price labels Y-axis
+  ctx.fillStyle='rgba(0,220,255,0.45)';
+  ctx.font=`${Math.max(9,10*Math.min(zoomLevel,1))}px monospace`;
+  for(let i=0;i<=4;i++){
+    const p=minP+(maxP-minP)*(i/4);
+    const y=toY(p);
+    ctx.fillText(p.toFixed(1), 4, y-2);
+  }
+
+  // current price tag
+  ctx.fillStyle='#00dcff';
+  ctx.font='9px monospace';
+  ctx.fillText(precoAtual.toFixed(2), W-44, yNow-3);
+  document.getElementById('chartPrice').textContent = precoAtual.toFixed(2);
+
+  // crosshair
+  if(mouseX!==null){
+    ctx.strokeStyle='rgba(255,255,255,0.15)';
+    ctx.lineWidth=0.7;
+    ctx.beginPath(); ctx.moveTo(mouseX,0); ctx.lineTo(mouseX,H); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(0,mouseY); ctx.lineTo(W,mouseY); ctx.stroke();
+    const hoverPrice = minP + (maxP-minP)*(1-mouseY/H);
+    ctx.fillStyle='rgba(255,255,255,0.7)';
+    ctx.font='9px monospace';
+    ctx.fillText(hoverPrice.toFixed(2), mouseX+6, mouseY-4);
+  }
+}
+
+let fakeSignal=false;
+function startSim(){
+  if(rafId) cancelAnimationFrame(rafId);
+  initCandles();
+  function tick(now){
+    if(!gs.rodada) return;
+    if(now-lastTick>=TICK){
+      lastTick=now;
+      const trend = gs.tendencia==='up' ? 1 : -1;
+      const noise = (Math.random()-0.5)*3;
+      let move = trend*(0.4+Math.random()*1.1)+noise*0.5;
+      if(Math.random()<0.28 && !fakeSignal){
+        fakeSignal=true;
+        move*=-2;
+        log('Falso rompimento!','err');
+        setTimeout(()=>fakeSignal=false,700);
+      }
+      if(Math.random()<0.12){
+        move*=(Math.random()<0.5?2.5:-2.5);
+        log('⚡ Spike!','info');
+      }
+      updatePrice(move);
+      drawCandles();
+    }
+    rafId=requestAnimationFrame(tick);
+  }
+  rafId=requestAnimationFrame(tick);
+}
+
+// ── UI HELPERS ─────────────────────────────────────────────────
+function log(msg, type=''){
+  const el=document.getElementById('logArea');
+  const d=document.createElement('div');
+  d.className='log-entry '+type;
+  d.textContent='› '+msg;
+  el.appendChild(d);
+  el.scrollTop=el.scrollHeight;
+  if(el.children.length>12) el.removeChild(el.children[0]);
+}
+function updateUI(){
+  const {myHP,oppHP,credits,streak,combo}=gs;
+  document.getElementById('myHp').textContent=Math.max(0,myHP);
+  document.getElementById('oppHp').textContent=Math.max(0,oppHP);
+  document.getElementById('myHpBar').style.width=Math.max(0,myHP)+'%';
+  document.getElementById('oppHpBar').style.width=Math.max(0,oppHP)+'%';
+  document.getElementById('creditsVal').textContent=Math.floor(credits);
+  document.getElementById('streakVal').textContent=streak;
+  document.getElementById('comboVal').textContent=combo+'×';
+}
+function vibrate(ms){ if(navigator.vibrate) navigator.vibrate(ms); }
+function flash(cls){ const w=document.getElementById('chartWrap'); w.classList.add(cls); setTimeout(()=>w.classList.remove(cls),400); }
+
+// ── ROUND LOGIC ─────────────────────────────────────────────────
+function iniciarRodada(){
+  if(gs.rodada) return;
+  gs.tendencia = Math.random()<0.65?'up':'down';
+  gs.betPlayer=null; gs.betOpp=null;
+  gs.tempo=30; gs.clutch=false;
+  gs.rodada=true;
+  document.getElementById('timerNum').textContent='30';
+  document.getElementById('eventTag').textContent='NOVA RODADA';
+  document.getElementById('upBtn').classList.remove('active');
+  document.getElementById('downBtn').classList.remove('active');
+  log('Nova rodada — leia o mercado!','info');
+  startSim();
+  if(gs.intervalId) clearInterval(gs.intervalId);
+  gs.intervalId=setInterval(()=>{
+    if(!gs.rodada) return;
+    if(gs.tempo<=1){ clearInterval(gs.intervalId); encerrarRodada(); return; }
+    gs.tempo--;
+    document.getElementById('timerNum').textContent=gs.tempo;
+    if(gs.tempo===5) document.getElementById('eventTag').textContent='🔥 CLUTCH';
+    if(gs.tempo<=3 && !gs.clutch){
+      gs.clutch=true;
+      document.getElementById('chartWrap').classList.add('clutch-pulse');
+      vibrate(200);
+    }
+    if(gs.tempo%10===0 && gs.tempo>0) ativarEvento();
+  },1000);
+}
+
+function ativarEvento(){
+  if(Math.random()>0.3) return;
+  const evts=[
+    { nome:'FLASH CRASH', fn:()=>{ gs.tendencia=gs.tendencia==='up'?'down':'up'; log('Flash Crash! Tendência invertida','err'); } },
+    { nome:'BALEIA',      fn:()=>{ if(!gs.betOpp && gameMode==='solo'){ gs.betOpp=apostaIA(); log('Baleia entrou!','info'); } } },
+    { nome:'FOMO',        fn:()=>{ if(gs.betPlayer){ gs.betPlayer.val=Math.min(gs.credits,Math.floor(gs.betPlayer.val*1.5)); log('FOMO! Aposta aumentada','info'); } } },
+    { nome:'LIQUIDAÇÃO',  fn:()=>{ if(!gs.betPlayer&&gs.tempo>8){ gs.myHP=Math.max(1,gs.myHP-10); log('Liquidação! −10 HP','err'); updateUI(); } } },
+  ];
+  const ev=evts[Math.floor(Math.random()*evts.length)];
+  ev.fn();
+  document.getElementById('eventTag').textContent=ev.nome;
+  setTimeout(()=>{ if(gs.rodada) document.getElementById('eventTag').textContent='⚡'; },2000);
+}
+
+async function encerrarRodada(){
+  if(!gs.rodada) return;
+  gs.rodada=false;
+  cancelAnimationFrame(rafId);
+  clearInterval(gs.intervalId);
+  const acJ = gs.betPlayer && gs.betPlayer.dir===gs.tendencia;
+  const acO = gs.betOpp    && gs.betOpp.dir   ===gs.tendencia;
+  const vJ  = gs.betPlayer ? gs.betPlayer.val : 0;
+  const vO  = gs.betOpp    ? gs.betOpp.val    : 0;
+  const dMul= Math.min(2.2, 1 + gs.combo*0.2);
+  log(`Resultado: ${gs.tendencia==='up'?'ALTA ▲':'BAIXA ▼'}`, 'info');
+  if(acJ && !acO){
+    const dano=Math.floor(vJ*dMul);
+    gs.credits+=vO; gs.oppHP-=dano; gs.combo++; gs.streak++;
+    log(`Acertou! +${vO} cr | Dano ${dMul.toFixed(1)}× → −${dano} HP adv`,'ok');
+    flash('flash-win'); vibrate(60);
+    if(gs.oppHP<=0){
+      log('VITÓRIA! +200 bônus','ok');
+      gs.credits+=200; gs.oppHP=100; gs.myHP=Math.min(100,gs.myHP+15);
+      if(gameMode==='solo') escolherIA();
+    }
+  } else if(!acJ && acO){
+    gs.credits-=vJ; gs.myHP-=vO; gs.combo=0; gs.streak=0;
+    log(`Errou! −${vJ} cr | −${vO} HP`,'err');
+    flash('flash-loss'); vibrate([100,30,100]);
+  } else if(acJ && acO){
+    gs.credits+=Math.floor(vO*0.4); gs.combo=Math.max(0,gs.combo-1);
+    log(`Empate. +${Math.floor(vO*0.4)} cr`);
+  } else {
+    gs.credits-=Math.min(vJ,gs.credits); gs.combo=0; gs.streak=0;
+    log('Ambos erraram.','err');
+  }
+  gs.myHP   = Math.max(0, Math.min(100, gs.myHP));
+  gs.oppHP  = Math.max(0, Math.min(100, gs.oppHP));
+  gs.credits= Math.max(0, gs.credits);
+  updateUI();
+  if(gs.myHP<=0){
+    log('☠ Você foi eliminado. Reiniciando...','err');
+    setTimeout(()=>location.reload(),3000); return;
+  }
+  setTimeout(()=>{ if(gs.myHP>0 && gs.oppHP>0) iniciarRodada(); },2500);
+}
+
+function fazerAposta(dir){
+  if(!gs.rodada) return log('Rodada não iniciada');
+  if(gs.travado) return log('Você está travado!','err');
+  const val=parseInt(document.getElementById('betAmt').value)||50;
+  if(val<10) return log('Mínimo: 10 créditos');
+  if(val>gs.credits) return log('Créditos insuficientes','err');
+  gs.betPlayer={dir,val};
+  log(`Aposta ${val} em ${dir==='up'?'COMPRA ▲':'VENDA ▼'}`,'ok');
+  vibrate(30);
+  document.getElementById('upBtn').classList.toggle('active', dir==='up');
+  document.getElementById('downBtn').classList.toggle('active', dir==='down');
+  if(!gs.betOpp && gameMode==='solo'){
+    gs.betOpp=apostaIA();
+    log(`${iaAtual.nome} apostou ${gs.betOpp.val} em ${gs.betOpp.dir==='up'?'COMPRA':'VENDA'}`);
+  }
+}
+
+// ── BUTTON WIRING ───────────────────────────────────────────────
+document.getElementById('upBtn').onclick   = ()=>fazerAposta('up');
+document.getElementById('downBtn').onclick = ()=>fazerAposta('down');
+
+document.getElementById('dblBtn').onclick = ()=>{
+  if(!gs.rodada || !gs.betPlayer) return;
+  const novo=Math.min(gs.credits, gs.betPlayer.val*2);
+  gs.betPlayer.val=novo;
+  document.getElementById('betAmt').value=novo;
+  log(`Dobrado → ${novo}`,'info');
+  vibrate(40);
+};
+document.getElementById('adjUp').onclick = ()=>{
+  if(!gs.rodada || !gs.betPlayer) return log('Aposte primeiro');
+  const n=Math.min(gs.credits, gs.betPlayer.val+20);
+  gs.betPlayer.val=n; document.getElementById('betAmt').value=n;
+  log(`Aposta: ${n}`);
+};
+document.getElementById('adjDown').onclick = ()=>{
+  if(!gs.rodada || !gs.betPlayer) return log('Aposte primeiro');
+  const n=Math.max(10, gs.betPlayer.val-20);
+  gs.betPlayer.val=n; document.getElementById('betAmt').value=n;
+  log(`Aposta: ${n}`);
+};
+document.getElementById('revBtn').onclick = ()=>{
+  if(!gs.rodada || !gs.betPlayer) return;
+  gs.betPlayer.dir=gs.betPlayer.dir==='up'?'down':'up';
+  log(`Invertido → ${gs.betPlayer.dir==='up'?'COMPRA ▲':'VENDA ▼'}`,'info');
+  document.getElementById('upBtn').classList.toggle('active', gs.betPlayer.dir==='up');
+  document.getElementById('downBtn').classList.toggle('active', gs.betPlayer.dir==='down');
+};
+document.getElementById('freezeSkill').onclick=()=>{
+  if(!gs.rodada) return;
+  if(gs.credits<50) return log('Precisa 50 cr','err');
+  gs.credits-=50; gs.tempo+=2;
+  document.getElementById('timerNum').textContent=gs.tempo;
+  log('+2 segundos congelados','info'); updateUI(); vibrate(30);
+};
+document.getElementById('revealSkill').onclick=()=>{
+  if(!gs.rodada) return;
+  if(gs.credits<100) return log('Precisa 100 cr','err');
+  gs.credits-=100;
+  log(`Tendência: ${gs.tendencia==='up'?'ALTA ▲':'BAIXA ▼'}`,'ok'); updateUI(); vibrate(30);
+};
+document.getElementById('lockSkill').onclick=()=>{
+  if(!gs.rodada) return;
+  if(gs.credits<80) return log('Precisa 80 cr','err');
+  gs.credits-=80; gs.travado=true;
+  log('Adversário travado por 5s','info');
+  setTimeout(()=>{ gs.travado=false; log('Adversário liberado'); },5000);
+  updateUI(); vibrate(50);
+};
+
+// ── MODAL ─────────────────────────────────────────────────────
+document.getElementById('modeSolo').onclick=()=>{
+  gameMode='solo';
+  document.getElementById('modeSolo').classList.add('active');
+  document.getElementById('modePvP').classList.remove('active');
+};
+document.getElementById('modePvP').onclick=()=>{
+  gameMode='pvp';
+  document.getElementById('modePvP').classList.add('active');
+  document.getElementById('modeSolo').classList.remove('active');
+};
+document.getElementById('startBtn').onclick=()=>{
+  document.getElementById('modeModal').classList.remove('show');
+  document.getElementById('gameApp').style.display='';
+  resizeCanvas();
+  if(gameMode==='solo') escolherIA();
+  updateUI();
+  iniciarRodada();
+};
+
+window.addEventListener('load',()=>{
+  resizeCanvas();
+  // firebase anon login attempt (silently)
+  if(auth) signInAnonymously(auth).then(r=>{ currentUser=r.user; }).catch(()=>{});
+  loadLeaderboard();
+});
+
+// ── LEADERBOARD (stub) ─────────────────────────────────────────
+function loadLeaderboard(){
+  const mock=[
+    ['KINGTRADER',9200],['APEX_RX',8100],['DARKPOOL',7450],
+    ['VOLBREAKER',6800],['NIGHTHAWK',5990],['SCALP3R',5400],
+    ['IRONLOSS',4800],['CYBORG77',3900],['ZEROHERO',3100],['NEWBIE_X',1200],
+  ];
+  const el=document.getElementById('lbContent');
+  el.innerHTML='';
+  mock.forEach(([name,score],i)=>{
+    const row=document.createElement('div');
+    row.className='lb-row';
+    row.innerHTML=`
+      <span class="lb-rank ${i<3?'top':''}">${i+1}</span>
+      <span class="lb-name">${name}</span>
+      <span class="lb-score">${score.toLocaleString()}</span>`;
+    el.appendChild(row);
+  });
+}
 </script>
 </body>
 </html>
