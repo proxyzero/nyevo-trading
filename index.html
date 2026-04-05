@@ -1,447 +1,1009 @@
-
----
-
-# 🎯 BLUEPRINT ULTRA DETALHADO – NY EVOLUTION (#NYEVO)
-
-## Versão: 2.0 (Final)
-## Plataforma: TikTok Effect House (Meta Spark para LIVE)
-## Público-alvo: 18-35 anos, street style, fitness, RPG social
-
----
-
-## 📚 SUMÁRIO EXECUTIVO
-
-| Item | Descrição |
-|------|-----------|
-| **Nome do Efeito** | NY Evolution (#NYEVO) |
-| **Hashtag Oficial** | #NYEVO |
-| **Modelo de Negócio** | Freemium + Moeda virtual (NY Coins) |
-| **Ticket Médio** | R$ 10 - R$ 200 por usuário |
-| **Comissão Estimada** | 70% sobre venda de NY Coins |
-| **Retenção Diária Esperada** | 45-60 min/usuário |
-| **Tempo de Desenvolvimento** | 6-8 semanas (MVP) |
-
----
-
-## 🧱 ARQUITETURA DO SISTEMA
-
-```
-┌─────────────────────────────────────────────────────────────┐
-│                    TIKTOK EFFECT HOUSE                      │
-│  ┌─────────────┐  ┌─────────────┐  ┌─────────────┐         │
-│  │ FaceTracker │  │  Gesture    │  │  Scripting  │         │
-│  │             │  │  Detection  │  │   (JS/TS)   │         │
-│  └──────┬──────┘  └──────┬──────┘  └──────┬──────┘         │
-│         │                │                │                 │
-│         └────────────────┼────────────────┘                 │
-│                          ▼                                  │
-│              ┌─────────────────────┐                        │
-│              │   AVATAR 3D RIG     │                        │
-│              │  (Blender/FBX)      │                        │
-│              └──────────┬──────────┘                        │
-│                         │                                   │
-│  ┌──────────────────────┼──────────────────────┐           │
-│  │                      ▼                      │           │
-│  │         ┌─────────────────────┐             │           │
-│  │         │  POINTS MANAGER     │             │           │
-│  │         │  - Farm timer       │             │           │
-│  │         │  - Streak counter   │             │           │
-│  │         │  - Boost multiplier │             │           │
-│  │         └──────────┬──────────┘             │           │
-│  │                    │                        │           │
-│  │         ┌──────────┼──────────┐             │           │
-│  │         ▼          ▼          ▼             │           │
-│  │   ┌─────────┐ ┌─────────┐ ┌─────────┐      │           │
-│  │   │ SORTEIO │ │  LOJA   │ │SKIN SYSTEM│     │           │
-│  │   │ Timer   │ │ (UI)    │ │ (Blendshapes)│    │           │
-│  │   └─────────┘ └─────────┘ └─────────┘      │           │
-│  └─────────────────────────────────────────────┘           │
-└─────────────────────────────────────────────────────────────┘
-                              │
-                              ▼
-┌─────────────────────────────────────────────────────────────┐
-│                   BACKEND (Firebase/API)                    │
-│  ┌─────────────┐  ┌─────────────┐  ┌─────────────┐         │
-│  │  Usuários   │  │  NY Coins   │  │  Itens      │         │
-│  │  Auth via   │  │  Wallet     │  │  Marketplace│         │
-│  │  TikTok ID  │  │             │  │             │         │
-│  └─────────────┘  └─────────────┘  └─────────────┘         │
-└─────────────────────────────────────────────────────────────┘
-                              │
-                              ▼
-┌─────────────────────────────────────────────────────────────┐
-│                 SITE EXTERNO (Hotmart/Shopify)              │
-│  - Venda de pacotes NY Coins                                │
-│  - Geração de códigos de resgate                            │
-│  - Suporte e FAQ                                            │
-└─────────────────────────────────────────────────────────────┘
-```
-
----
-
-## 🎮 SISTEMA DE PONTOS (FARMING) – ESPECIFICAÇÃO TÉCNICA
-
-### Tabela de Pontuação
-
-| Papel | Pontos/min | Condição |
-|-------|------------|----------|
-| **Host** | 1 | Em live própria |
-| **Espectador** | 0,2 | Apenas assistindo |
-| **Convidado (entrada direta)** | 3 | Primeiros 5 min após aceitar convite |
-| **Bônus coletivo** | +0,5 | Live com ≥ 50 espectadores |
-| **Boost ativo (host)** | 2x | 30s, max 5x/live |
-
-### Fórmula de Cálculo (por minuto)
-
-```
-Pontos_por_minuto = (
-    Papel_base +
-    Bonus_coletivo +
-    (Boost_ativo ? Papel_base * 1 : 0)
-) * Multiplicador_streak
-```
-
-### Streak Multiplicador
-
-| Dias consecutivos | Multiplicador |
-|------------------|---------------|
-| 1 | 1,0x |
-| 2 | 1,2x |
-| 3 | 1,5x |
-| 4+ | 2,0x |
-
-**Regra:** Reset após 24h sem entrar em nenhuma live.
-
----
-
-## 💰 SISTEMA ECONÔMICO (NY COINS)
-
-### Pacotes de Venda (Site Externo)
-
-| Pacote | NY Coins | Preço (R$) | Custo por 1000 Coins |
-|--------|----------|------------|----------------------|
-| Iniciante | 1.000 | R$ 10 | R$ 10 |
-| Intermediário | 5.000 | R$ 45 | R$ 9 |
-| Avançado | 12.000 | R$ 100 | R$ 8,33 |
-| Épico | 25.000 | R$ 200 | R$ 8 |
-
-### Preços dos Itens (em NY Coins)
-
-| Raridade | Preço | Duração | Exemplo |
-|----------|-------|---------|---------|
-| Comum | 500 | 2h de live | Abdômen básico |
-| Raro | 2.000 | 12h de live | Peitoral definido |
-| Épico | 20.000 | 7 dias | Monstro veias neon |
-| Lendário | 50.000 | 30 dias | Cyberpunk completo |
-
-### Marketplace P2P
-
-- Usuário A anuncia item por X NY Coins
-- Usuário B compra
-- Taxa de comissão: **10%** (vai para o criador)
-- Item perde 10% de duração ao ser transferido (evita farming de conta)
-
----
-
-## 🎲 SISTEMA DE SORTEIO (RODA DA SORTE)
-
-### Configuração
-
-| Parâmetro | Valor |
-|-----------|-------|
-| Intervalo | 30 minutos de live |
-| Participantes | Todos na live (host + espectadores) |
-| Probabilidade base | 1 / N_participantes |
-
-### Escolha do Ganhador
-
-Ao ganhar, aparece modal na tela:
-
-```
-┌─────────────────────────────────────┐
-│  🎉 VOCÊ GANHOU O SORTEIO! 🎉       │
-│                                     │
-│  Escolha seu prêmio:                │
-│                                     │
-│  [📦 ITEM ÉPICO (7 dias)]           │
-│         OU                          │
-│  [⚡ 2x PONTOS ACUMULADOS NA LIVE]  │
-│                                     │
-└─────────────────────────────────────┘
-```
-
-### Feedback Visual (obrigatório)
-
-1. Tela escurece 0.5s
-2. Nome do ganhador em neon no centro
-3. Avatar do ganhador brilha (emissive material)
-4. Som de "level up" (MP3 embed)
-5. Vibração (se dispositivo permitir)
-
----
-
-## 👤 ONBOARDING (PRIMEIRA LIVE)
-
-### Fluxo do Novo Usuário
-
-```
-Entra na live
-    │
-    ▼
-[10 minutos de live]
-    │
-    ▼
-Ganha: "Manjar do Poder Iniciante"
-├── +2 pontos/min
-├── Abdômen básico (visual)
-└── Duração: 2 horas de live acumuladas
-    │
-    ▼
-Barra de progresso visível:
-"▓▓▓▓▓▓▓▓▓▓░░░░░░░░ 50% restante"
-    │
-    ▼
-Se completar 60 minutos totais em até 3 dias:
-    │
-    ▼
-✅ Item se torna PERMANENTE (versão básica)
-```
-
-### Mensagens de Sistema
-
-| Momento | Mensagem |
-|---------|----------|
-| Ganhou item | "🎁 Manjar do Poder! +2 pontos/min por 2h de live" |
-| 50% restante | "⚠️ Metade do tempo do seu item acabou!" |
-| 10% restante | "🔥 Volte para mais lives e multiplique a duração!" |
-| Tornou permanente | "🏆 PARABÉNS! Seu abdômen agora é PERMANENTE!" |
-
----
-
-## 🎨 SISTEMA DE COR DE PELE
-
-### Implementação Técnica (Effect House)
-
-```javascript
-// Material do avatar com parâmetros de cor
-const skinMaterial = Avatar.getMaterial("Skin_Base");
-
-// 5 tons predefinidos (RGB valores)
-const skinTones = [
-    { name: "Claro", r: 1.0, g: 0.85, b: 0.75 },   // #FFD9B3
-    { name: "Médio", r: 0.85, g: 0.70, b: 0.55 },  // #D9B38C
-    { name: "Moreno", r: 0.70, g: 0.55, b: 0.40 }, // #B38C66
-    { name: "Negro", r: 0.50, g: 0.35, b: 0.25 },  // #805940
-    { name: "Profundo", r: 0.30, g: 0.20, b: 0.15 } // #4D3326
-];
-
-// Slider de ajuste fino (0-100)
-// Interpola entre o tom base e +10% de brilho ou sombra
-```
-
-### UI do Seletor
-
-- Botão "🎨 Cor da Pele" no menu lateral
-- 5 círculos coloridos (seleção rápida)
-- Slider abaixo: "Ajuste Fino" (0-100)
-
----
-
-## 🧬 ESTILOS DE AVATAR – ESPECIFICAÇÃO 3D
-
-### Fase 1 (Lançamento) – Natural + Monstro
-
-#### Natural (Corpo Sarado Realista)
-
-| Item | Blendshape Target | NY Coins | Duração |
-|------|-------------------|----------|---------|
-| Abdômen definido | `abs_defined_50` | 500 | 2h |
-| Peitoral | `chest_defined_40` | 500 | 2h |
-| Bumbum redondo | `glute_round_60` | 800 | 2h |
-| Cintura fina | `waist_slim_30` | 400 | 2h |
-| **Pacote Completo** | Todos acima | 2.000 | 12h |
-
-#### Monstro (Músculos Exagerados)
-
-| Item | Blendshape Target | NY Coins | Duração |
-|------|-------------------|----------|---------|
-| Braço monstro | `arm_monster_80` | 1.000 | 2h |
-| Peitoral monstro | `chest_monster_90` | 1.000 | 2h |
-| Veias neon | `veins_glow_100` | 1.500 | 2h |
-| Aura vermelha | `aura_rage` (particle) | 2.000 | 2h |
-| **Pacote Monstro** | Todos acima | 5.000 | 12h |
-
-### Fase 2 (2 semanas) – Cyberpunk
-
-| Item | Descrição | NY Coins |
-|------|-----------|----------|
-| Braço robótico | Prótese com glow azul | 3.000 |
-| Olho de laser | Emissive vermelho piscante | 2.500 |
-| Placas neon | Texto "NY" no peito | 2.000 |
-| Trilhha glow | Rastro digital ao se mexer | 4.000 |
-
-### Fase 3 (1 mês) – Herói
-
-| Item | Descrição | NY Coins |
-|------|-----------|----------|
-| Capa | Física (simulada) | 5.000 |
-| Máscara | Meia face + glow dourado | 3.000 |
-| Cinto utilitário | Acessórios metálicos | 2.000 |
-| Aura dourada | Partículas brilhantes | 4.000 |
-
-### Fase 4 (2 meses) – Celebridade
-
-| Item | Descrição | NY Coins |
-|------|-----------|----------|
-| Jaqueta de couro | Preto brilhante | 6.000 |
-| Óculos escuros | Espelhado | 3.000 |
-| Corrente de ouro | Physics-based | 4.000 |
-| Cabelo famoso | Corte específico (cached) | 5.000 |
-
----
-
-## 🔧 REQUISITOS TÉCNICOS – EFFECT HOUSE
-
-### Assets
-
-| Tipo | Especificação |
-|------|---------------|
-| Avatar base | FBX, 15k tris, rigged com 52 bones |
-| Blendshapes | 30 targets (músculos, formas) |
-| Texturas | 2K PBR (Diffuse, Normal, Metallic, Emissive) |
-| Animações | Idle, Walk, Boost, Transformação |
-| Partículas | Aura, brilho, sorteio |
-| Áudio | 8 arquivos MP3 (max 3s cada) |
-
-### Scripting (JavaScript)
-
-```javascript
-// Estrutura principal
-class NYEVO {
-    constructor() {
-        this.points = 0;
-        this.streak = 1;
-        this.lastLiveDate = null;
-        this.boostRemaining = 5;
-        this.activeItems = [];
-        this.sorteioTimer = 1800; // 30 min em segundos
-    }
-    
-    // Métodos principais
-    calculatePointsPerMinute(role, viewerCount, isBoostActive) { }
-    applySkinTone(toneIndex, fineTune) { }
-    startSorteio() { }
-    processPurchase(itemId) { }
-    handleDecay() { }
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, user-scalable=no">
+    <title>NYEVO Trading Duelo 2.0 — Terminal Online</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            user-select: none;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body {
+            background: linear-gradient(145deg, #0a0f1e 0%, #0c1222 100%);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            font-family: 'Inter', 'Segoe UI', 'Courier New', monospace;
+            margin: 0;
+            padding: clamp(8px, 2vw, 20px);
+            transition: all 0.2s;
+        }
+
+        body.clutch-mode {
+            background: linear-gradient(145deg, #1a0a2e 0%, #0c0a1a 100%);
+            animation: pulse-bg 0.5s ease-in-out;
+        }
+
+        @keyframes pulse-bg {
+            0% { background: #0a0f1e; }
+            100% { background: #1a0a2e; }
+        }
+
+        /* ARENA PRINCIPAL */
+        .arena {
+            width: 100%;
+            max-width: 1200px;
+            background: rgba(10, 20, 30, 0.85);
+            backdrop-filter: blur(12px);
+            border-radius: clamp(20px, 3vw, 56px);
+            padding: clamp(12px, 2vw, 24px);
+            box-shadow: 0 25px 45px rgba(0,0,0,0.5), inset 0 1px 1px rgba(255,255,255,0.1);
+            border: 1px solid rgba(0, 255, 255, 0.3);
+            transition: all 0.2s;
+        }
+
+        body.clutch-mode .arena {
+            border: 2px solid #ff3366;
+            box-shadow: 0 0 20px rgba(255,51,102,0.5);
+        }
+
+        /* HEADER INFO */
+        .info-bar {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(120px, auto));
+            gap: 10px;
+            margin-bottom: 20px;
+            background: #000000aa;
+            border-radius: 60px;
+            padding: 8px 16px;
+            backdrop-filter: blur(4px);
+        }
+
+        .credits, .streak, .combo, .player-name {
+            font-size: clamp(0.8rem, 2vw, 1.1rem);
+            font-weight: bold;
+            font-family: monospace;
+            letter-spacing: 1px;
+        }
+
+        /* HP BAR GRID */
+        .hp-bar {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+            gap: clamp(8px, 2vw, 20px);
+            margin-bottom: 20px;
+        }
+
+        .hp-card {
+            background: #000000aa;
+            backdrop-filter: blur(8px);
+            border-radius: 32px;
+            padding: 12px 18px;
+            text-align: center;
+            border: 1px solid cyan;
+        }
+
+        .hp-text {
+            font-size: clamp(0.9rem, 2vw, 1.2rem);
+            font-weight: bold;
+        }
+
+        .hp-value {
+            font-size: clamp(1.6rem, 4vw, 2.5rem);
+            font-weight: 800;
+            background: linear-gradient(135deg, #ffd966, #ff7b2c);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            font-family: monospace;
+        }
+
+        .combo-indicator {
+            font-size: 0.75rem;
+            color: gold;
+            margin-top: 5px;
+        }
+
+        /* GRÁFICO */
+        .graph-container {
+            background: #010a14;
+            border-radius: 36px;
+            padding: clamp(10px, 2vw, 20px);
+            margin-bottom: 20px;
+            border: 1px solid #2c5a6e;
+            position: relative;
+        }
+
+        canvas {
+            width: 100%;
+            height: clamp(160px, 30vh, 260px);
+            display: block;
+            background: #03101c;
+            border-radius: 24px;
+            margin-bottom: 10px;
+        }
+
+        .timer-block {
+            display: flex;
+            justify-content: space-between;
+            align-items: baseline;
+            font-size: clamp(1.2rem, 3vw, 1.8rem);
+            font-weight: bold;
+            color: cyan;
+            margin: 10px 0;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .clutch-timer {
+            color: #ff3366;
+            text-shadow: 0 0 8px #ff3366;
+            animation: pulse 0.5s infinite;
+        }
+
+        @keyframes pulse {
+            0% { opacity: 1; }
+            50% { opacity: 0.6; }
+            100% { opacity: 1; }
+        }
+
+        /* PAINEL DE APOSTA */
+        .bet-panel {
+            background: #071826dd;
+            border-radius: 40px;
+            padding: clamp(10px, 2vw, 18px);
+            margin: 12px 0;
+        }
+
+        .bet-input-row {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 10px;
+            flex-wrap: wrap;
+        }
+
+        .bet-input {
+            flex: 2;
+            background: #0e1a28;
+            border: 1px solid cyan;
+            border-radius: 48px;
+            padding: clamp(10px, 2vw, 14px);
+            color: #00ffe1;
+            text-align: center;
+            font-size: clamp(1rem, 2.5vw, 1.2rem);
+            font-family: monospace;
+            font-weight: bold;
+        }
+
+        .double-btn {
+            flex: 1;
+            background: #ff8800;
+            border-radius: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            cursor: pointer;
+            transition: 0.1s;
+        }
+
+        /* BOTÕES DIREÇÃO */
+        .direction-buttons {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: clamp(8px, 2vw, 18px);
+            margin: 15px 0;
+        }
+
+        .btn-dir {
+            padding: clamp(10px, 2vw, 16px);
+            font-size: clamp(1rem, 2.5vw, 1.3rem);
+            font-weight: bold;
+            border: none;
+            border-radius: 60px;
+            cursor: pointer;
+            transition: 0.07s linear;
+        }
+
+        .btn-up { background: #0f5e3a; color: white; border-bottom: 3px solid #00ffaa; }
+        .btn-down { background: #7a2e2e; color: white; border-bottom: 3px solid #ff4444; }
+
+        /* AÇÕES RÁPIDAS */
+        .action-buttons {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(90px, 1fr));
+            gap: 10px;
+            margin-top: 12px;
+        }
+
+        .action-btn {
+            background: #1e3a4d;
+            padding: 8px;
+            border-radius: 40px;
+            font-size: 0.75rem;
+            font-weight: bold;
+            cursor: pointer;
+            text-align: center;
+            transition: 0.1s;
+        }
+
+        /* SKILLS */
+        .skill-row {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(90px, 1fr));
+            gap: 12px;
+            margin: 15px 0;
+        }
+
+        .skill {
+            background: #16212e;
+            border-radius: 40px;
+            padding: 8px 5px;
+            text-align: center;
+            font-weight: bold;
+            font-size: 0.7rem;
+            border: 1px solid gold;
+            cursor: pointer;
+        }
+
+        /* LOG */
+        .status-log {
+            background: #030e1a;
+            border-radius: 24px;
+            padding: 12px;
+            font-size: 0.75rem;
+            color: #bbf0ff;
+            margin-top: 15px;
+            max-height: 100px;
+            overflow-y: auto;
+            font-family: monospace;
+        }
+
+        /* LEADERBOARD */
+        .leaderboard {
+            background: #030e1a;
+            border-radius: 24px;
+            padding: 12px;
+            margin-top: 15px;
+            max-height: clamp(150px, 30vh, 250px);
+            overflow-y: auto;
+        }
+
+        .leaderboard-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 8px;
+            margin: 4px 0;
+            background: #0a1a28;
+            border-radius: 12px;
+            font-size: 0.85rem;
+        }
+
+        /* MODAL */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.85);
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+
+        .modal-content {
+            background: #0a1a28;
+            border-radius: 32px;
+            padding: 30px;
+            max-width: 500px;
+            width: 90%;
+            text-align: center;
+            border: 2px solid cyan;
+        }
+
+        .mode-toggle {
+            display: flex;
+            gap: 15px;
+            margin: 20px 0;
+        }
+
+        .mode-btn {
+            flex: 1;
+            padding: 12px;
+            background: #1e3a4d;
+            border: 2px solid transparent;
+            border-radius: 20px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+
+        .mode-btn.active {
+            border-color: #00ffaa;
+            background: #0f5e3a;
+        }
+
+        /* ONLINE INDICATOR */
+        .online-indicator {
+            position: fixed;
+            top: 12px;
+            right: 12px;
+            padding: 5px 12px;
+            background: #0f5e3a;
+            border-radius: 30px;
+            font-size: 0.7rem;
+            font-weight: bold;
+            z-index: 1100;
+            backdrop-filter: blur(4px);
+        }
+
+        /* BOTÃO FULLSCREEN */
+        .fullscreen-btn {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background: #1e3a4d;
+            border: none;
+            border-radius: 40px;
+            padding: 10px 16px;
+            color: white;
+            font-weight: bold;
+            cursor: pointer;
+            z-index: 1100;
+            backdrop-filter: blur(4px);
+        }
+
+        /* RESPONSIVO MOBILE LANDSCAPE */
+        @media (max-width: 768px) {
+            .arena {
+                border-radius: 20px;
+            }
+            .direction-buttons {
+                grid-template-columns: 1fr;
+            }
+            .action-buttons {
+                grid-template-columns: 1fr 1fr;
+            }
+            .timer-block {
+                flex-direction: column;
+                align-items: center;
+            }
+            .info-bar {
+                grid-template-columns: 1fr 1fr;
+                text-align: center;
+            }
+        }
+
+        @media (min-width: 1600px) {
+            .arena {
+                max-width: 1400px;
+            }
+        }
+
+        /* Efeitos */
+        .flash-red { animation: flashRed 0.2s; }
+        @keyframes flashRed {
+            0% { background-color: rgba(255,0,0,0); }
+            50% { background-color: rgba(255,0,0,0.4); }
+            100% { background-color: rgba(255,0,0,0); }
+        }
+        .flash-green { animation: flashGreen 0.2s; }
+        @keyframes flashGreen {
+            0% { background-color: rgba(0,255,0,0); }
+            50% { background-color: rgba(0,255,0,0.4); }
+            100% { background-color: rgba(0,255,0,0); }
+        }
+    </style>
+</head>
+<body>
+
+<div class="online-indicator" id="onlineStatus">🔴 Conectando...</div>
+<button class="fullscreen-btn" id="fullscreenBtn">⛶ Tela cheia</button>
+
+<div class="modal" id="modeModal">
+    <div class="modal-content">
+        <h2 style="color: cyan;">📈 NYEVO TRADING</h2>
+        <div class="mode-toggle">
+            <div class="mode-btn" id="modeSolo">
+                <div style="font-size: 2rem;">🤖</div>
+                <div>VS IA</div>
+                <div style="font-size: 0.7rem;">Treino offline</div>
+            </div>
+            <div class="mode-btn active" id="modePvP">
+                <div style="font-size: 2rem;">⚔️</div>
+                <div>DUELO PVP</div>
+                <div style="font-size: 0.7rem;">Em breve</div>
+            </div>
+        </div>
+        <button class="modal-btn" id="startGameBtn" style="background:#0f5e3a; border:none; padding:12px 30px; border-radius:40px;">🎮 COMEÇAR</button>
+        <div id="playersOnline" style="margin-top: 15px;">🌐 Carregando...</div>
+    </div>
+</div>
+
+<div class="arena" id="gameApp" style="display: none;">
+    <div class="info-bar">
+        <div class="credits">💰 <span id="creditsValue">500</span></div>
+        <div class="streak">🏆 STREAK: <span id="streakSpan">0</span></div>
+        <div class="combo">⚡ COMBO: <span id="comboSpan">0</span>x</div>
+        <div class="player-name">👤 <span id="playerName">Trader</span></div>
+    </div>
+
+    <div class="hp-bar">
+        <div class="hp-card"><div class="hp-text">😎 VOCÊ</div><div class="hp-value" id="myHp">100</div><div class="combo-indicator" id="myComboInd"></div></div>
+        <div class="hp-card"><div class="hp-text">🤖 <span id="iaName">AGGRESSOR</span></div><div class="hp-value" id="oppHp">100</div></div>
+    </div>
+
+    <div class="graph-container">
+        <canvas id="priceCanvas" width="600" height="200"></canvas>
+        <div class="timer-block">
+            ⏱️ <span id="timerDisplay">30</span> seg
+            <span id="eventAlert">⚡</span>
+        </div>
+    </div>
+
+    <div class="bet-panel">
+        <div class="bet-input-row">
+            <input type="number" id="betAmount" class="bet-input" value="50" step="10" min="10">
+            <div id="doubleBtn" class="action-btn double-btn">✖️2 DOBRAR</div>
+        </div>
+        <div class="direction-buttons">
+            <button class="btn-dir btn-up" id="upBtn">📈 COMPRAR (SOBE)</button>
+            <button class="btn-dir btn-down" id="downBtn">📉 VENDER (DESCE)</button>
+        </div>
+        <div class="action-buttons">
+            <div id="adjustUpBtn" class="action-btn">➕ +20</div>
+            <div id="adjustDownBtn" class="action-btn">➖ -20</div>
+            <div id="reverseBtn" class="action-btn">🔄 INVERTER</div>
+        </div>
+    </div>
+
+    <div class="skill-row">
+        <div class="skill" id="freezeSkill">⏸️ CONGELAR (+2s)</div>
+        <div class="skill" id="revealSkill">👁️ VER TENDÊNCIA</div>
+        <div class="skill" id="lockSkill">🔒 TRAVAR ADV</div>
+    </div>
+
+    <div class="status-log" id="logArea">
+        🟢 Conectando ao servidor...
+    </div>
+
+    <div class="leaderboard" id="leaderboard">
+        <div style="font-weight: bold; margin-bottom: 10px; color: gold;">🏆 TOP 10 RANKING GLOBAL</div>
+        <div id="leaderboardContent">Carregando...</div>
+    </div>
+</div>
+
+<script type="module">
+import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js';
+import { getAuth, signInAnonymously } from 'https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js';
+import { getFirestore, doc, setDoc, getDoc, updateDoc, collection, query, orderBy, limit, onSnapshot, serverTimestamp, increment } from 'https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js';
+
+// ========== CONFIGURAÇÃO FIREBASE (SUBSTITUA PELOS SEUS DADOS) ==========
+const firebaseConfig = {
+    apiKey: "SUA_API_KEY_AQUI",
+    authDomain: "seu-projeto.firebaseapp.com",
+    projectId: "seu-projeto-id",
+    storageBucket: "seu-projeto.appspot.com",
+    messagingSenderId: "123456789",
+    appId: "1:123456789:web:abc123def456"
+};
+
+// ========== INICIALIZAÇÃO ==========
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+const db = getFirestore(app);
+
+let currentUser = null;
+let gameMode = 'solo';
+
+// ========== PERFIS IA ==========
+const iaPerfis = {
+    agressivo: { nome: "🔥 AGRESSOR", probApostaDir: 0.85, rangeAposta: [60,150], desc: "aposta alto" },
+    conservador: { nome: "🛡️ CONSERVADOR", probApostaDir: 0.6, rangeAposta: [20,60], desc: "cauteloso" },
+    troll: { nome: "🎭 TROLL", probApostaDir: 0.5, rangeAposta: [30,90], desc: "blefador" },
+    estrategista: { nome: "🧠 ESTRATEGISTA", probApostaDir: 0.7, rangeAposta: [40,100], desc: "analítico" }
+};
+let iaAtual = { ...iaPerfis.agressivo };
+
+// ========== ESTADO GLOBAL ==========
+let gameState = {
+    myHP: 100, oppHP: 100, credits: 500, streak: 0, combo: 0,
+    rodadaAtiva: false, tempoRestante: 30, tendenciaReal: null,
+    apostaJogador: null, apostaOponente: null,
+    oponenteTravado: false, podeApostar: true, podeAlterarAposta: true,
+    intervaloId: null, clutchAtivo: false,
+    direcaoAtual: null
+};
+
+// Elementos DOM
+const canvas = document.getElementById('priceCanvas');
+const ctx = canvas.getContext('2d');
+let animationFrame = null;
+let precoAtual = 100;
+let simulatedPriceHistory = [100];
+let fakeSignalAtivo = false;
+
+const myHpSpan = document.getElementById('myHp');
+const oppHpSpan = document.getElementById('oppHp');
+const creditsSpan = document.getElementById('creditsValue');
+const streakSpan = document.getElementById('streakSpan');
+const comboSpan = document.getElementById('comboSpan');
+const timerDisplay = document.getElementById('timerDisplay');
+const logArea = document.getElementById('logArea');
+const eventAlertSpan = document.getElementById('eventAlert');
+const iaNameSpan = document.getElementById('iaName');
+const playerNameSpan = document.getElementById('playerName');
+const onlineStatus = document.getElementById('onlineStatus');
+const leaderboardContent = document.getElementById('leaderboardContent');
+
+const upBtn = document.getElementById('upBtn');
+const downBtn = document.getElementById('downBtn');
+const betInput = document.getElementById('betAmount');
+const doubleBtn = document.getElementById('doubleBtn');
+const adjustUpBtn = document.getElementById('adjustUpBtn');
+const adjustDownBtn = document.getElementById('adjustDownBtn');
+const reverseBtn = document.getElementById('reverseBtn');
+const freezeBtn = document.getElementById('freezeSkill');
+const revealBtn = document.getElementById('revealSkill');
+const lockBtn = document.getElementById('lockSkill');
+
+// Modal
+const modeModal = document.getElementById('modeModal');
+const modeSoloBtn = document.getElementById('modeSolo');
+const modePvPBtn = document.getElementById('modePvP');
+const startGameBtn = document.getElementById('startGameBtn');
+const playersOnlineSpan = document.getElementById('playersOnline');
+const gameApp = document.getElementById('gameApp');
+
+// ========== UTILITÁRIOS ==========
+function addLog(msg, isError = false) {
+    const div = document.createElement('div');
+    div.innerHTML = isError ? `⚠️ ${msg}` : `🔹 ${msg}`;
+    div.style.color = isError ? '#ff8888' : '#bbf0ff';
+    logArea.appendChild(div);
+    logArea.scrollTop = logArea.scrollHeight;
+    if(logArea.children.length > 8) logArea.removeChild(logArea.children[0]);
 }
-```
 
-### Armazenamento Local
+function vibrate(ms = 50) {
+    if (navigator.vibrate) navigator.vibrate(ms);
+}
 
-| Chave | Tipo | Descrição |
-|-------|------|-----------|
-| `nyevo_points` | Int | Pontos totais do usuário |
-| `nyevo_streak` | Int | Dias consecutivos |
-| `nyevo_last_live` | Timestamp | Última entrada |
-| `nyevo_items` | Array | IDs dos itens + duração restante |
-| `nyevo_wallet` | Int | NY Coins disponíveis |
+function updateUI() {
+    myHpSpan.innerText = Math.max(0, gameState.myHP);
+    oppHpSpan.innerText = Math.max(0, gameState.oppHP);
+    creditsSpan.innerText = Math.floor(gameState.credits);
+    streakSpan.innerText = gameState.streak;
+    comboSpan.innerText = gameState.combo;
+    if(gameMode === 'pvp') iaNameSpan.innerText = "OPONENTE";
+    else iaNameSpan.innerText = iaAtual.nome;
+}
 
----
+function aplicarFeedbackVisual(tipo) {
+    const arena = document.querySelector('.arena');
+    if(tipo === 'dano') {
+        arena.classList.add('flash-red');
+        setTimeout(() => arena.classList.remove('flash-red'), 200);
+        vibrate(100);
+    } else if(tipo === 'ganho') {
+        arena.classList.add('flash-green');
+        setTimeout(() => arena.classList.remove('flash-green'), 200);
+        vibrate(50);
+    } else if(tipo === 'clutch') {
+        document.body.classList.add('clutch-mode');
+        setTimeout(() => document.body.classList.remove('clutch-mode'), 1000);
+        vibrate(200);
+    }
+}
 
-## 📅 TIMELINE DE DESENVOLVIMENTO
+// ========== FIREBASE ==========
+async function loginUser() {
+    try {
+        const userCredential = await signInAnonymously(auth);
+        currentUser = userCredential.user;
+        onlineStatus.innerText = '🟢 Online';
+        await loadOrCreateProfile();
+        loadLeaderboard();
+        return true;
+    } catch (error) {
+        console.error(error);
+        onlineStatus.innerText = '🔴 Offline';
+        addLog('Erro ao conectar ao Firebase. Modo offline limitado.', true);
+        return false;
+    }
+}
 
-### Sprint 1 (Semana 1-2) – Base e Onboarding
-- [ ] Setup do projeto Effect House
-- [ ] Importar avatar base + rig
-- [ ] Sistema de pontos (host/espectador)
-- [ ] Onboarding (Manjar do Poder)
-- [ ] Sistema de cor de pele (5 tons + slider)
+async function loadOrCreateProfile() {
+    if (!currentUser) return;
+    const userRef = doc(db, 'players', currentUser.uid);
+    const userSnap = await getDoc(userRef);
+    if (userSnap.exists()) {
+        const data = userSnap.data();
+        gameState.credits = data.credits || 500;
+        gameState.myHP = data.hp || 100;
+        gameState.streak = data.streak || 0;
+        playerNameSpan.innerText = data.nickname || `Trader#${currentUser.uid.substring(0,4)}`;
+    } else {
+        await setDoc(userRef, {
+            nickname: `Trader#${currentUser.uid.substring(0,4)}`,
+            credits: 500, hp: 100, streak: 0, totalWins: 0, totalLosses: 0,
+            highestStreak: 0, createdAt: serverTimestamp(), lastPlayed: serverTimestamp()
+        });
+        playerNameSpan.innerText = `Trader#${currentUser.uid.substring(0,4)}`;
+    }
+    updateUI();
+}
 
-### Sprint 2 (Semana 3-4) – Monetização e Sorteio
-- [ ] Sistema de NY Coins (local storage)
-- [ ] Loja UI (listagem de itens)
-- [ ] Sistema de sorteio (30 min)
-- [ ] Resgate de código (Firebase)
-- [ ] Boost por gesto/comando
+async function saveProgress() {
+    if (!currentUser) return;
+    try {
+        await updateDoc(doc(db, 'players', currentUser.uid), {
+            credits: gameState.credits,
+            hp: gameState.myHP,
+            streak: gameState.streak,
+            lastPlayed: serverTimestamp()
+        });
+    } catch(e) { console.warn(e); }
+}
 
-### Sprint 3 (Semana 5-6) – Itens e Estilos
-- [ ] Blendshapes do Natural (6 itens)
-- [ ] Blendshapes do Monstro (5 itens)
-- [ ] Sistema de duração + decay
-- [ ] UI de progresso dos itens
-- [ ] Animações de transformação
+async function updateWinLoss(won) {
+    if (!currentUser) return;
+    const updates = { lastPlayed: serverTimestamp() };
+    if (won) updates.totalWins = increment(1);
+    else updates.totalLosses = increment(1);
+    await updateDoc(doc(db, 'players', currentUser.uid), updates);
+}
 
-### Sprint 4 (Semana 7-8) – Polimento e Teste
-- [ ] Efeitos sonoros + vibração
-- [ ] Streak diário
-- [ ] Bônus coletivo (>50 viewers)
-- [ ] Teste de performance em live
-- [ ] Submissão para TikTok
+function loadLeaderboard() {
+    const q = query(collection(db, 'players'), orderBy('streak', 'desc'), limit(10));
+    onSnapshot(q, (snapshot) => {
+        let html = '';
+        let rank = 1;
+        snapshot.forEach(doc => {
+            const data = doc.data();
+            const isCurrent = doc.id === currentUser?.uid;
+            html += `<div class="leaderboard-item" style="${isCurrent ? 'border:2px solid gold;' : ''}">
+                        <span>#${rank}</span> <span>${data.nickname || 'Anônimo'}</span> <span style="color:#0f0;">${data.streak || 0}🔥</span>
+                    </div>`;
+            rank++;
+        });
+        leaderboardContent.innerHTML = html || 'Nenhum jogador';
+    });
+}
 
-### Pós-lançamento
-- [ ] Semana 9: Cyberpunk (Fase 2)
-- [ ] Semana 12: Herói (Fase 3)
-- [ ] Semana 16: Celebridade (Fase 4)
-- [ ] Semana 20: Marketplace P2P
+// ========== GRÁFICO RESPONSIVO ==========
+function resizeCanvas() {
+    const rect = canvas.getBoundingClientRect();
+    canvas.width = rect.width * window.devicePixelRatio;
+    canvas.height = rect.height * window.devicePixelRatio;
+    ctx.setTransform(1, 0, 0, 1, 0, 0);
+    ctx.scale(window.devicePixelRatio, window.devicePixelRatio);
+    drawCandles();
+}
+window.addEventListener('resize', resizeCanvas);
 
----
+function drawCandles() {
+    if (!ctx) return;
+    const w = canvas.clientWidth;
+    const h = canvas.clientHeight;
+    ctx.clearRect(0, 0, w, h);
+    if(simulatedPriceHistory.length < 2) return;
+    const minP = Math.min(...simulatedPriceHistory, 70);
+    const maxP = Math.max(...simulatedPriceHistory, 130);
+    const range = Math.max(maxP - minP, 0.1);
+    const stepX = w / (simulatedPriceHistory.length - 1);
+    ctx.beginPath();
+    ctx.strokeStyle = "#00ffff";
+    ctx.lineWidth = 2.5;
+    for(let i=0; i<simulatedPriceHistory.length; i++) {
+        let y = h - ((simulatedPriceHistory[i] - minP) / range) * (h - 20) - 10;
+        if(i===0) ctx.moveTo(i*stepX, y);
+        else ctx.lineTo(i*stepX, y);
+    }
+    ctx.stroke();
+}
 
-## 📊 MÉTRICAS DE SUCESSO (KPI)
+function startGraphAnimation() {
+    if(animationFrame) cancelAnimationFrame(animationFrame);
+    precoAtual = 100;
+    simulatedPriceHistory = [100];
+    let lastTime = 0;
+    function animate(timestamp) {
+        if (!gameState.rodadaAtiva) return;
+        if (!lastTime || timestamp - lastTime > 180) {
+            lastTime = timestamp;
+            let trend = (gameState.tendenciaReal === "up") ? 1 : -1;
+            let noise = (Math.random() - 0.5) * 4;
+            let move = trend * (0.8 + Math.random() * 1.5) + noise * 0.8;
+            if (Math.random() < 0.3 && !fakeSignalAtivo) {
+                fakeSignalAtivo = true;
+                move *= -2.2;
+                addLog("⚠️ Falso rompimento!", true);
+                setTimeout(() => fakeSignalAtivo = false, 800);
+            }
+            if (Math.random() < 0.15) {
+                move *= (Math.random() < 0.5 ? 2.5 : -2.5);
+                addLog("⚡ SPIKE!", true);
+            }
+            precoAtual = Math.max(55, Math.min(155, precoAtual + move));
+            simulatedPriceHistory.push(precoAtual);
+            if(simulatedPriceHistory.length > 45) simulatedPriceHistory.shift();
+            drawCandles();
+        }
+        animationFrame = requestAnimationFrame(animate);
+    }
+    animationFrame = requestAnimationFrame(animate);
+}
 
-| Métrica | Meta | Medição |
-|---------|------|---------|
-| Tempo médio de live | >15 min | Analytics TikTok |
-| Retenção D1 (Dia 1) | >40% | Backend |
-| Retenção D7 | >15% | Backend |
-| Conversão (compra NY Coins) | >5% dos ativos | Hotmart |
-| Sorteios participados | >80% dos usuários | Event tracking |
-| Itens trocados (marketplace) | 1000/semana (V2) | Backend |
+// ========== IA E LÓGICA DO JOGO ==========
+function escolherPerfilIA() {
+    const perfis = Object.values(iaPerfis);
+    iaAtual = { ...perfis[Math.floor(Math.random() * perfis.length)] };
+    addLog(`🤖 NOVO ADV: ${iaAtual.nome} - ${iaAtual.desc}`);
+}
 
----
+function apostaIA() {
+    let direcao = Math.random() < iaAtual.probApostaDir ? gameState.tendenciaReal : (gameState.tendenciaReal === "up" ? "down" : "up");
+    let valor = Math.floor(Math.random() * (iaAtual.rangeAposta[1] - iaAtual.rangeAposta[0]) + iaAtual.rangeAposta[0]);
+    return { direcao, valor };
+}
 
-## 🚨 PRÓXIMOS PASSOS IMEDIATOS
+function ativarEventoAleatorio() {
+    if(Math.random() > 0.25) return;
+    const eventos = [
+        { nome:"📉 FLASH CRASH", efeito:()=>{ gameState.tendenciaReal = (gameState.tendenciaReal === "up") ? "down" : "up"; addLog("⚡ FLASH CRASH! Tendência invertida!"); } },
+        { nome:"🐋 BALEIA", efeito:()=>{ if(!gameState.apostaOponente && gameMode === 'solo') { gameState.apostaOponente = apostaIA(); addLog("🐋 Baleia entrou! Oponente fez aposta extra!"); } } },
+        { nome:"🔥 FOMO", efeito:()=>{ if(gameState.apostaJogador) { gameState.apostaJogador.valor = Math.min(gameState.credits, Math.floor(gameState.apostaJogador.valor*1.6)); addLog("🔥 FOMO! Aposta aumentada!"); } } },
+        { nome:"💀 LIQUIDAÇÃO", efeito:()=>{ if(!gameState.apostaJogador && gameState.tempoRestante>8) { gameState.myHP = Math.max(1, gameState.myHP-15); addLog("💀 Liquidação! -15 HP!"); } } }
+    ];
+    let ev = eventos[Math.floor(Math.random()*eventos.length)];
+    ev.efeito();
+    eventAlertSpan.innerText = ev.nome;
+    setTimeout(()=>{ if(gameState.rodadaAtiva) eventAlertSpan.innerText = "⚡"; }, 2000);
+    updateUI();
+}
 
-### Para você (João) fazer hoje:
+async function encerrarRodada() {
+    if(!gameState.rodadaAtiva) return;
+    gameState.rodadaAtiva = false;
+    cancelAnimationFrame(animationFrame);
+    clearInterval(gameState.intervaloId);
+    
+    let acertouJogador = (gameState.apostaJogador && gameState.apostaJogador.direcao === gameState.tendenciaReal);
+    let acertouOponente = (gameState.apostaOponente && gameState.apostaOponente.direcao === gameState.tendenciaReal);
+    let valorJ = gameState.apostaJogador ? gameState.apostaJogador.valor : 0;
+    let valorO = gameState.apostaOponente ? gameState.apostaOponente.valor : 0;
+    let danoMulti = 1 + (gameState.combo * 0.2);
+    danoMulti = Math.min(danoMulti, 2.2);
+    
+    addLog(`🔔 RESULTADO: ${gameState.tendenciaReal === "up" ? "ALTA 🔼" : "BAIXA 🔽"}`);
+    let won = false;
+    if(acertouJogador && !acertouOponente) {
+        let ganho = valorO;
+        let dano = Math.floor(valorJ * danoMulti);
+        gameState.credits += ganho;
+        gameState.oppHP -= dano;
+        gameState.combo++;
+        addLog(`🎉 ACERTOU! +${ganho} créditos, dano ${danoMulti.toFixed(1)}x: -${dano} HP`);
+        gameState.streak++;
+        aplicarFeedbackVisual('ganho');
+        won = true;
+    } else if(!acertouJogador && acertouOponente) {
+        gameState.credits -= valorJ;
+        gameState.myHP -= valorO;
+        gameState.combo = 0;
+        addLog(`💀 ERROU! Perdeu ${valorJ} créditos e -${valorO} HP`);
+        gameState.streak = 0;
+        aplicarFeedbackVisual('dano');
+    } else if(acertouJogador && acertouOponente) {
+        gameState.credits += Math.floor(valorO * 0.4);
+        addLog(`🤝 Empate! +${Math.floor(valorO*0.4)} créditos`);
+        gameState.combo = Math.max(0, gameState.combo-1);
+    } else {
+        gameState.credits -= Math.min(valorJ, gameState.credits);
+        gameState.combo = 0;
+        addLog(`💥 Ambos erraram!`);
+        gameState.streak = 0;
+    }
+    gameState.myHP = Math.min(100, Math.max(0, gameState.myHP));
+    gameState.oppHP = Math.min(100, Math.max(0, gameState.oppHP));
+    gameState.credits = Math.max(0, gameState.credits);
+    updateUI();
+    await saveProgress();
+    if(won) await updateWinLoss(true);
+    
+    if(gameState.myHP <= 0) {
+        addLog("☠️ VOCÊ MORREU! Fim de jogo.");
+        await updateWinLoss(false);
+        desabilitarBotoes();
+        setTimeout(() => location.reload(), 3000);
+    } else if(gameState.oppHP <= 0) {
+        addLog("🏆 VITÓRIA! +200 créditos bônus!");
+        gameState.credits += 200;
+        gameState.oppHP = 100;
+        gameState.myHP = Math.min(100, gameState.myHP+15);
+        if(gameMode === 'solo') escolherPerfilIA();
+        await saveProgress();
+        updateUI();
+    }
+    setTimeout(() => {
+        if(gameState.myHP > 0 && gameState.oppHP > 0) iniciarRodada();
+    }, 2800);
+}
 
-1. **Registrar domínio** para site de vendas (ex: nyevo.com.br)
-2. **Criar conta Hotmart/Shopify** para venda de NY Coins
-3. **Definir nome da marca** (NY Evolution vs #NYEVO)
-4. **Contratar modelador 3D** (ou eu indico freelancers)
-5. **Abrir canal no Discord** para comunidade
+function fazerAposta(direcao) {
+    if(!gameState.rodadaAtiva) return addLog("Rodada não iniciada!");
+    if(gameState.oponenteTravado) return addLog("🔒 Você está travado!");
+    let valor = parseInt(betInput.value);
+    if(valor < 10) return addLog("Mínimo 10");
+    if(valor > gameState.credits) return addLog("Créditos insuficientes");
+    gameState.apostaJogador = { direcao, valor };
+    gameState.direcaoAtual = direcao;
+    gameState.podeApostar = false;
+    addLog(`✅ Aposta ${valor} em ${direcao === "up" ? "ALTA" : "BAIXA"}`);
+    vibrate(30);
+    if(!gameState.apostaOponente && gameMode === 'solo') {
+        gameState.apostaOponente = apostaIA();
+        addLog(`🤖 ${iaAtual.nome} apostou ${gameState.apostaOponente.valor} em ${gameState.apostaOponente.direcao === "up" ? "ALTA" : "BAIXA"}`);
+    }
+}
 
-### Para o desenvolvedor (eu ou sua equipe):
+function ajustarAposta(delta) {
+    if(!gameState.rodadaAtiva || !gameState.apostaJogador) return addLog("Aposte primeiro!");
+    let novo = gameState.apostaJogador.valor + delta;
+    if(novo < 10) novo = 10;
+    if(novo > gameState.credits) novo = gameState.credits;
+    gameState.apostaJogador.valor = novo;
+    betInput.value = novo;
+    addLog(`✏️ Aposta ajustada para ${novo}`);
+}
 
-1. **Setup do Effect House** + projeto base
-2. **Criar Firebase project** para backend
-3. **Implementar script de pontos** (entregarei o código completo)
-4. **Testar em dispositivo físico** (iOS e Android)
+function dobrarAposta() {
+    if(!gameState.rodadaAtiva || !gameState.apostaJogador) return;
+    let novo = gameState.apostaJogador.valor * 2;
+    if(novo > gameState.credits) novo = gameState.credits;
+    gameState.apostaJogador.valor = novo;
+    betInput.value = novo;
+    addLog(`💥 DOBRADA! Nova aposta: ${novo}`);
+    vibrate(40);
+}
 
----
+function inverterDirecao() {
+    if(!gameState.rodadaAtiva || !gameState.apostaJogador) return;
+    gameState.apostaJogador.direcao = gameState.apostaJogador.direcao === "up" ? "down" : "up";
+    gameState.direcaoAtual = gameState.apostaJogador.direcao;
+    addLog(`🔄 Direção invertida para ${gameState.apostaJogador.direcao === "up" ? "ALTA" : "BAIXA"}`);
+}
 
-## 📝 CHECKLIST DE PRÉ-LANÇAMENTO
+function verificarClutch() {
+    if(gameState.tempoRestante <= 3 && gameState.rodadaAtiva && !gameState.clutchAtivo) {
+        gameState.clutchAtivo = true;
+        aplicarFeedbackVisual('clutch');
+        addLog("🔥 MODO CLUTCH ATIVADO! Últimos 3 segundos!");
+    }
+}
 
-- [ ] Efeito aprovado pela TikTok (3-5 dias úteis)
-- [ ] 10 criadores de conteúdo contratados para testar
-- [ ] 3 lives de lançamento agendadas
-- [ ] Hashtag #NYEVO registrada em todas as redes
-- [ ] Site de venda de NY Coins funcionando
-- [ ] Sistema de resgate de código testado
-- [ ] FAQ e suporte preparados
-- [ ] Vídeo tutorial (1 min) gravado
+function congelar() {
+    if(!gameState.rodadaAtiva) return;
+    if(gameState.credits < 50) return addLog("Precisa 50 créditos");
+    gameState.credits -= 50;
+    gameState.tempoRestante += 2;
+    timerDisplay.innerText = gameState.tempoRestante;
+    addLog("⏸️ +2 segundos!");
+    updateUI();
+    vibrate(30);
+}
+function revelarTendencia() {
+    if(!gameState.rodadaAtiva) return;
+    if(gameState.credits < 100) return addLog("Precisa 100 créditos");
+    gameState.credits -= 100;
+    addLog(`👁️ TENDÊNCIA: ${gameState.tendenciaReal === "up" ? "📈 ALTA" : "📉 BAIXA"}`);
+    updateUI();
+    vibrate(30);
+}
+function travarAdversario() {
+    if(!gameState.rodadaAtiva) return;
+    if(gameState.credits < 80) return addLog("Precisa 80 créditos");
+    gameState.credits -= 80;
+    gameState.oponenteTravado = true;
+    addLog("🔒 Adversário travado por 5s!");
+    setTimeout(() => { gameState.oponenteTravado = false; addLog("🔓 Liberado"); }, 5000);
+    updateUI();
+    vibrate(50);
+}
 
----
+function desabilitarBotoes() {
+    upBtn.disabled = downBtn.disabled = true;
+}
 
-## 💎 RESUMO FINAL
+function iniciarRodada() {
+    if(gameState.rodadaAtiva) return;
+    let prob = 0.55 + Math.random() * 0.2;
+    gameState.tendenciaReal = Math.random() < prob ? "up" : "down";
+    gameState.apostaJogador = null;
+    gameState.apostaOponente = null;
+    gameState.podeApostar = true;
+    gameState.tempoRestante = 30;
+    gameState.clutchAtivo = false;
+    gameState.rodadaAtiva = true;
+    timerDisplay.innerText = "30";
+    eventAlertSpan.innerText = "⚡ NOVA RODADA";
+    addLog("📊 NOVA RODADA");
+    startGraphAnimation();
+    if(gameState.intervaloId) clearInterval(gameState.intervaloId);
+    gameState.intervaloId = setInterval(() => {
+        if(!gameState.rodadaAtiva) return;
+        if(gameState.tempoRestante <= 1) {
+            clearInterval(gameState.intervaloId);
+            encerrarRodada();
+        } else {
+            gameState.tempoRestante--;
+            timerDisplay.innerText = gameState.tempoRestante;
+            if(gameState.tempoRestante === 5) eventAlertSpan.innerText = "🔥 CLUTCH!";
+            verificarClutch();
+            if(gameState.tempoRestante % 10 === 0) ativarEventoAleatorio();
+        }
+    }, 1000);
+}
 
-O **NY Evolution (#NYEVO)** é um **jogo de progressão social** dentro do TikTok LIVE. Ele combina:
+// ========== EVENTOS UI ==========
+upBtn.onclick = () => fazerAposta("up");
+downBtn.onclick = () => fazerAposta("down");
+doubleBtn.onclick = dobrarAposta;
+adjustUpBtn.onclick = () => ajustarAposta(20);
+adjustDownBtn.onclick = () => ajustarAposta(-20);
+reverseBtn.onclick = inverterDirecao;
+freezeBtn.onclick = congelar;
+revealBtn.onclick = revelarTendencia;
+lockBtn.onclick = travarAdversario;
 
-- 🎮 **Gamificação**: Farm, streak, sorteios, evolução de corpo
-- 💰 **Economia real**: NY Coins, marketplace, comissão
-- 🔥 **Viralidade**: Bônus por convite, roubo de espectador
-- 🧬 **Customização**: Cor de pele, estilos, itens raros
+// Fullscreen
+document.getElementById('fullscreenBtn').onclick = () => {
+    if(document.documentElement.requestFullscreen) document.documentElement.requestFullscreen();
+};
 
-**Diferencial competitivo:**  
-Nenhum outro filtro no TikTok tem **sistema de farm com duração de itens + economia P2P**. Você está criando uma nova categoria.
+// MODAL
+modeSoloBtn.onclick = () => { gameMode = 'solo'; modeSoloBtn.classList.add('active'); modePvPBtn.classList.remove('active'); };
+modePvPBtn.onclick = () => { gameMode = 'pvp'; modePvPBtn.classList.add('active'); modeSoloBtn.classList.remove('active'); };
+startGameBtn.onclick = async () => {
+    const connected = await loginUser();
+    if(!connected && gameMode === 'pvp') alert('Modo PVP requer conexão. Use Solo.');
+    modeModal.style.display = 'none';
+    gameApp.style.display = 'block';
+    if(gameMode === 'solo') escolherPerfilIA();
+    else addLog('🌐 Modo PVP (em breve). Por enquanto, jogue contra IA.');
+    iniciarJogo();
+};
 
----
+function iniciarJogo() {
+    gameState = {
+        myHP: gameState.myHP || 100, oppHP: 100, credits: gameState.credits || 500,
+        streak: gameState.streak || 0, combo: 0, rodadaAtiva: false, tempoRestante: 30,
+        tendenciaReal: null, apostaJogador: null, apostaOponente: null, oponenteTravado: false,
+        podeApostar: true, podeAlterarAposta: true, intervaloId: null, clutchAtivo: false
+    };
+    updateUI();
+    iniciarRodada();
+}
 
+// Atualiza contador de jogadores
+async function updateOnlineCount() {
+    const q = query(collection(db, 'players'));
+    onSnapshot(q, (snap) => { playersOnlineSpan.innerText = `🌐 ${snap.size} traders`; });
+}
+
+window.addEventListener('load', () => {
+    modeModal.style.display = 'flex';
+    updateOnlineCount();
+    resizeCanvas();
+});
+
+setInterval(() => { if(currentUser && gameState.rodadaAtiva) saveProgress(); }, 30000);
+</script>
+</body>
+</html>
