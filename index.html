@@ -960,12 +960,11 @@ document.getElementById('fullscreenBtn').onclick = async () => {
 modeSoloBtn.onclick = () => { gameMode = 'solo'; modeSoloBtn.classList.add('active'); modePvPBtn.classList.remove('active'); };
 modePvPBtn.onclick = () => { gameMode = 'pvp'; modePvPBtn.classList.add('active'); modeSoloBtn.classList.remove('active'); };
 startGameBtn.onclick = async () => {
-    const connected = await loginUser();
-    if(!connected && gameMode === 'pvp') alert('Modo PVP requer conexão. Use Solo.');
+    // Pula Firebase completamente
     modeModal.style.display = 'none';
     gameApp.style.display = 'block';
-    if(gameMode === 'solo') escolherPerfilIA();
-    else addLog('🌐 Modo PVP (em breve). Por enquanto, jogue contra IA.');
+    gameMode = 'solo'; // força modo solo
+    escolherPerfilIA();
     iniciarJogo();
 };
 
@@ -991,6 +990,7 @@ window.addEventListener('load', () => {
     resizeCanvas();
 });
 
+    
 setInterval(() => { if(currentUser && gameState.rodadaAtiva) saveProgress(); }, 30000);
 </script>
 </body>
