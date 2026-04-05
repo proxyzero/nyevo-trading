@@ -1,0 +1,1022 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>NYEVO Trading Duelo 2.0 - ONLINE</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            user-select: none;
+        }
+        body {
+            background: linear-gradient(145deg, #0a0f1e 0%, #0c1222 100%);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            font-family: 'Segoe UI', 'Inter', system-ui, sans-serif;
+            margin: 0;
+            padding: 16px;
+            transition: all 0.2s;
+        }
+        body.clutch-mode {
+            background: linear-gradient(145deg, #1a0a2e 0%, #0c0a1a 100%);
+            animation: pulse-bg 0.5s ease-in-out;
+        }
+        @keyframes pulse-bg {
+            0% { background: #0a0f1e; }
+            100% { background: #1a0a2e; }
+        }
+        .arena {
+            max-width: 750px;
+            width: 100%;
+            background: rgba(10, 20, 30, 0.75);
+            backdrop-filter: blur(8px);
+            border-radius: 56px;
+            padding: 20px;
+            box-shadow: 0 25px 45px rgba(0,0,0,0.5), inset 0 1px 1px rgba(255,255,255,0.1);
+            border: 1px solid rgba(0, 255, 255, 0.3);
+            transition: all 0.2s;
+        }
+        body.clutch-mode .arena {
+            border: 2px solid #ff3366;
+            box-shadow: 0 0 20px rgba(255,51,102,0.5);
+        }
+        .hp-bar {
+            display: flex;
+            justify-content: space-between;
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+        .hp-card {
+            background: #000000aa;
+            backdrop-filter: blur(8px);
+            border-radius: 32px;
+            padding: 12px 18px;
+            flex: 1;
+            text-align: center;
+            border: 1px solid cyan;
+        }
+        .hp-text {
+            font-weight: bold;
+            font-size: 1.2rem;
+        }
+        .hp-value {
+            font-size: 2rem;
+            font-weight: 800;
+            background: linear-gradient(135deg, #ffd966, #ff7b2c);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+        }
+        .combo-indicator {
+            font-size: 0.8rem;
+            color: gold;
+            margin-top: 5px;
+        }
+        .graph-container {
+            background: #010a14;
+            border-radius: 36px;
+            padding: 20px 15px 15px;
+            margin-bottom: 20px;
+            border: 1px solid #2c5a6e;
+            position: relative;
+        }
+        canvas {
+            display: block;
+            width: 100%;
+            background: #03101c;
+            border-radius: 24px;
+            margin-bottom: 10px;
+        }
+        .timer-block {
+            display: flex;
+            justify-content: space-between;
+            align-items: baseline;
+            font-size: 1.8rem;
+            font-weight: bold;
+            color: cyan;
+            margin: 10px 0;
+        }
+        .clutch-timer {
+            color: #ff3366;
+            text-shadow: 0 0 8px #ff3366;
+            animation: pulse 0.5s infinite;
+        }
+        @keyframes pulse {
+            0% { opacity: 1; }
+            50% { opacity: 0.6; }
+            100% { opacity: 1; }
+        }
+        .bet-panel {
+            background: #071826dd;
+            border-radius: 40px;
+            padding: 15px;
+            margin: 12px 0;
+        }
+        .direction-buttons {
+            display: flex;
+            gap: 18px;
+            justify-content: center;
+            margin: 15px 0;
+        }
+        .btn-dir {
+            flex: 1;
+            padding: 14px 0;
+            font-size: 1.3rem;
+            font-weight: bold;
+            border: none;
+            border-radius: 60px;
+            cursor: pointer;
+            transition: 0.07s linear;
+        }
+        .btn-up { background: #0f5e3a; color: white; border-bottom: 3px solid #00ffaa; }
+        .btn-down { background: #7a2e2e; color: white; border-bottom: 3px solid #ff4444; }
+        .action-buttons {
+            display: flex;
+            gap: 12px;
+            margin-top: 12px;
+        }
+        .action-btn {
+            flex: 1;
+            background: #1e3a4d;
+            padding: 8px;
+            border-radius: 40px;
+            font-size: 0.75rem;
+            font-weight: bold;
+            cursor: pointer;
+            text-align: center;
+        }
+        .skill-row {
+            display: flex;
+            gap: 12px;
+            margin: 15px 0;
+        }
+        .skill {
+            flex: 1;
+            background: #16212e;
+            border-radius: 40px;
+            padding: 8px 5px;
+            text-align: center;
+            font-weight: bold;
+            font-size: 0.7rem;
+            border: 1px solid gold;
+            cursor: pointer;
+        }
+        .status-log {
+            background: #030e1a;
+            border-radius: 24px;
+            padding: 12px;
+            font-size: 0.8rem;
+            color: #bbf0ff;
+            margin-top: 15px;
+            max-height: 100px;
+            overflow-y: auto;
+        }
+        button:disabled {
+            opacity: 0.4;
+            cursor: not-allowed;
+        }
+        .credits {
+            font-size: 1.2rem;
+            background: #000000aa;
+            border-radius: 50px;
+            padding: 4px 12px;
+            display: inline-block;
+            margin-bottom: 10px;
+        }
+        .shake {
+            animation: shake 0.2s ease-in-out 0s 2;
+        }
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-5px); }
+            75% { transform: translateX(5px); }
+        }
+        .flash-red {
+            animation: flashRed 0.2s;
+        }
+        @keyframes flashRed {
+            0% { background-color: rgba(255,0,0,0); }
+            50% { background-color: rgba(255,0,0,0.5); }
+            100% { background-color: rgba(255,0,0,0); }
+        }
+        .flash-green {
+            animation: flashGreen 0.2s;
+        }
+        @keyframes flashGreen {
+            0% { background-color: rgba(0,255,0,0); }
+            50% { background-color: rgba(0,255,0,0.5); }
+            100% { background-color: rgba(0,255,0,0); }
+        }
+        .leaderboard {
+            background: #030e1a;
+            border-radius: 24px;
+            padding: 12px;
+            margin-top: 15px;
+            max-height: 200px;
+            overflow-y: auto;
+        }
+        .leaderboard-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 8px;
+            margin: 4px 0;
+            background: #0a1a28;
+            border-radius: 12px;
+            font-size: 0.85rem;
+        }
+        .leaderboard-rank {
+            color: gold;
+            font-weight: bold;
+        }
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.8);
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+        .modal-content {
+            background: #0a1a28;
+            border-radius: 32px;
+            padding: 30px;
+            max-width: 500px;
+            width: 90%;
+            text-align: center;
+            border: 2px solid cyan;
+        }
+        .modal-btn {
+            background: #0f5e3a;
+            color: white;
+            padding: 12px 30px;
+            border: none;
+            border-radius: 30px;
+            font-size: 1.1rem;
+            font-weight: bold;
+            cursor: pointer;
+            margin: 10px;
+        }
+        .mode-toggle {
+            display: flex;
+            gap: 10px;
+            margin: 15px 0;
+        }
+        .mode-btn {
+            flex: 1;
+            padding: 10px;
+            background: #1e3a4d;
+            border: 2px solid transparent;
+            border-radius: 20px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: 0.2s;
+        }
+        .mode-btn.active {
+            border-color: #00ffaa;
+            background: #0f5e3a;
+        }
+        .online-indicator {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            padding: 5px 10px;
+            background: #0f5e3a;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            color: white;
+        }
+        .online-indicator.offline {
+            background: #7a2e2e;
+        }
+    </style>
+</head>
+<body>
+<div class="online-indicator" id="onlineStatus">🔴 Conectando...</div>
+
+<div class="modal" id="modeModal">
+    <div class="modal-content">
+        <h2 style="color: cyan;">🎮 ESCOLHA O MODO</h2>
+        <div class="mode-toggle">
+            <div class="mode-btn" id="modeSolo">
+                <div style="font-size: 2rem;">🤖</div>
+                <div>VS IA</div>
+                <div style="font-size: 0.7rem; margin-top: 5px;">Treino offline</div>
+            </div>
+            <div class="mode-btn active" id="modePvP">
+                <div style="font-size: 2rem;">⚔️</div>
+                <div>DUELO PVP</div>
+                <div style="font-size: 0.7rem; margin-top: 5px;">Contra jogadores reais</div>
+            </div>
+        </div>
+        <button class="modal-btn" id="startGameBtn">COMEÇAR JOGO</button>
+        <div style="margin-top: 20px; font-size: 0.9rem; color: #bbf0ff;">
+            <div id="playersOnline">🌐 Carregando...</div>
+        </div>
+    </div>
+</div>
+
+<div class="arena" id="gameApp" style="display: none;">
+    <div style="display: flex; justify-content: space-between; flex-wrap: wrap;">
+        <div class="credits">💰 CRÉDITOS: <span id="creditsValue">500</span></div>
+        <div class="credits">🏆 STREAK: <span id="streakSpan">0</span></div>
+        <div class="credits">⚡ COMBO: <span id="comboSpan">0</span>x</div>
+        <div class="credits">👤 <span id="playerName">Jogador</span></div>
+    </div>
+
+    <div class="hp-bar">
+        <div class="hp-card"><div class="hp-text">😎 VOCÊ</div><div class="hp-value" id="myHp">100</div><div class="combo-indicator" id="myComboInd"></div></div>
+        <div class="hp-card"><div class="hp-text">🤖 <span id="iaName">AGGRESSOR</span></div><div class="hp-value" id="oppHp">100</div></div>
+    </div>
+
+    <div class="graph-container">
+        <canvas id="priceCanvas" width="600" height="200" style="width:100%; height:auto; max-height:180px"></canvas>
+        <div class="timer-block">
+            ⏱️ <span id="timerDisplay">30</span> seg
+            <span id="eventAlert" style="font-size:0.8rem;">⚡</span>
+        </div>
+    </div>
+
+    <div class="bet-panel">
+        <div style="display: flex; gap: 10px; margin-bottom: 10px;">
+            <input type="number" id="betAmount" class="bet-input" value="50" step="10" min="10" style="flex:2; background:#0e1a28; border:1px solid cyan; border-radius:48px; padding:12px; color:#00ffe1; text-align:center;">
+            <div id="doubleBtn" class="action-btn" style="flex:1; background:#ff8800;">✖️2 DOBRAR</div>
+        </div>
+        <div class="direction-buttons">
+            <button class="btn-dir btn-up" id="upBtn">📈 COMPRAR (SOBE)</button>
+            <button class="btn-dir btn-down" id="downBtn">📉 VENDER (DESCE)</button>
+        </div>
+        <div class="action-buttons">
+            <div id="adjustUpBtn" class="action-btn">➕ +20 APOSTA</div>
+            <div id="adjustDownBtn" class="action-btn">➖ -20 APOSTA</div>
+            <div id="reverseBtn" class="action-btn">🔄 INVERTER DIREÇÃO</div>
+        </div>
+    </div>
+
+    <div class="skill-row">
+        <div class="skill" id="freezeSkill">⏸️ CONGELAR (+2s)</div>
+        <div class="skill" id="revealSkill">👁️ VER TENDÊNCIA</div>
+        <div class="skill" id="lockSkill">🔒 TRAVAR ADV</div>
+    </div>
+
+    <div class="status-log" id="logArea">
+        🟢 CONECTANDO AO SERVIDOR...
+    </div>
+
+    <div class="leaderboard" id="leaderboard">
+        <div style="font-weight: bold; margin-bottom: 10px; color: gold;">🏆 TOP 10 RANKING GLOBAL</div>
+        <div id="leaderboardContent">Carregando...</div>
+    </div>
+</div>
+
+<!-- Firebase SDK -->
+<script type="module">
+import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js';
+import { getAuth, signInAnonymously, onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js';
+import { getFirestore, doc, setDoc, getDoc, updateDoc, collection, query, orderBy, limit, onSnapshot, serverTimestamp, increment } from 'https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js';
+
+// ========== CONFIGURAÇÃO FIREBASE (SUBSTITUA PELOS SEUS DADOS) ==========
+const firebaseConfig = {
+    apiKey: "SUA_API_KEY_AQUI",
+    authDomain: "seu-projeto.firebaseapp.com",
+    projectId: "seu-projeto-id",
+    storageBucket: "seu-projeto.appspot.com",
+    messagingSenderId: "123456789",
+    appId: "1:123456789:web:abc123def456"
+};
+
+// ========== INICIALIZAÇÃO ==========
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+const db = getFirestore(app);
+
+let currentUser = null;
+let gameMode = 'pvp'; // 'solo' ou 'pvp'
+let matchmakingListener = null;
+let currentMatchId = null;
+
+// ========== PERFIS DE IA (MODO SOLO) ==========
+const iaPerfis = {
+    agressivo: { nome: "🔥 AGRESSOR", probApostaDir: 0.85, rangeAposta: [60,150], desc: "aposta alto e segue forte a tendência" },
+    conservador: { nome: "🛡️ CONSERVADOR", probApostaDir: 0.6, rangeAposta: [20,60], desc: "aposta baixo, cauteloso" },
+    troll: { nome: "🎭 TROLL", probApostaDir: 0.5, rangeAposta: [30,90], desc: "blefa e inverte direção" },
+    estrategista: { nome: "🧠 ESTRATEGISTA", probApostaDir: 0.7, rangeAposta: [40,100], desc: "analisa e ajusta" }
+};
+let iaAtual = { ...iaPerfis.agressivo };
+
+// ========== ESTADO GLOBAL ==========
+let gameState = {
+    myHP: 100, oppHP: 100, credits: 500, streak: 0, combo: 0,
+    rodadaAtiva: false, tempoRestante: 30, tendenciaReal: null,
+    apostaJogador: null, apostaOponente: null,
+    oponenteTravado: false, podeApostar: true, podeAlterarAposta: true,
+    intervaloId: null, clutchAtivo: false,
+    direcaoAtual: null,
+    historicoAcoes: []
+};
+
+// Elementos DOM
+const canvas = document.getElementById('priceCanvas');
+const ctx = canvas.getContext('2d');
+let animationFrame = null;
+let precoAtual = 100;
+let simulatedPriceHistory = [100];
+let fakeSignalAtivo = false;
+
+const myHpSpan = document.getElementById('myHp');
+const oppHpSpan = document.getElementById('oppHp');
+const creditsSpan = document.getElementById('creditsValue');
+const streakSpan = document.getElementById('streakSpan');
+const comboSpan = document.getElementById('comboSpan');
+const timerDisplay = document.getElementById('timerDisplay');
+const logArea = document.getElementById('logArea');
+const eventAlertSpan = document.getElementById('eventAlert');
+const iaNameSpan = document.getElementById('iaName');
+const playerNameSpan = document.getElementById('playerName');
+const onlineStatus = document.getElementById('onlineStatus');
+const leaderboardContent = document.getElementById('leaderboardContent');
+
+const upBtn = document.getElementById('upBtn');
+const downBtn = document.getElementById('downBtn');
+const betInput = document.getElementById('betAmount');
+const doubleBtn = document.getElementById('doubleBtn');
+const adjustUpBtn = document.getElementById('adjustUpBtn');
+const adjustDownBtn = document.getElementById('adjustDownBtn');
+const reverseBtn = document.getElementById('reverseBtn');
+const freezeBtn = document.getElementById('freezeSkill');
+const revealBtn = document.getElementById('revealSkill');
+const lockBtn = document.getElementById('lockSkill');
+
+// Modal elements
+const modeModal = document.getElementById('modeModal');
+const modeSoloBtn = document.getElementById('modeSolo');
+const modePvPBtn = document.getElementById('modePvP');
+const startGameBtn = document.getElementById('startGameBtn');
+const playersOnlineSpan = document.getElementById('playersOnline');
+const gameApp = document.getElementById('gameApp');
+
+// ========== FUNÇÕES DE LOG ==========
+function addLog(msg, isError = false) {
+    const div = document.createElement('div');
+    div.innerHTML = isError ? `⚠️ ${msg}` : `🔹 ${msg}`;
+    div.style.color = isError ? '#ff8888' : '#bbf0ff';
+    logArea.appendChild(div);
+    logArea.scrollTop = logArea.scrollHeight;
+    if(logArea.children.length > 8) logArea.removeChild(logArea.children[0]);
+}
+
+function updateUI() {
+    myHpSpan.innerText = Math.max(0, gameState.myHP);
+    oppHpSpan.innerText = Math.max(0, gameState.oppHP);
+    creditsSpan.innerText = Math.floor(gameState.credits);
+    streakSpan.innerText = gameState.streak;
+    comboSpan.innerText = gameState.combo;
+    if(gameMode === 'pvp') {
+        iaNameSpan.innerText = "JOGADOR";
+    } else {
+        iaNameSpan.innerText = iaAtual.nome;
+    }
+}
+
+function aplicarFeedbackVisual(tipo) {
+    const arena = document.querySelector('.arena');
+    if(tipo === 'dano') {
+        arena.classList.add('flash-red');
+        setTimeout(() => arena.classList.remove('flash-red'), 200);
+    } else if(tipo === 'ganho') {
+        arena.classList.add('flash-green');
+        setTimeout(() => arena.classList.remove('flash-green'), 200);
+    } else if(tipo === 'clutch') {
+        document.body.classList.add('clutch-mode');
+        setTimeout(() => document.body.classList.remove('clutch-mode'), 1000);
+    }
+}
+
+// ========== FIREBASE: AUTENTICAÇÃO ==========
+async function loginUser() {
+    try {
+        const userCredential = await signInAnonymously(auth);
+        currentUser = userCredential.user;
+        onlineStatus.innerText = '🟢 Online';
+        onlineStatus.classList.remove('offline');
+        addLog(`🔐 Conectado como ${currentUser.uid.substring(0,8)}...`);
+        
+        // Carregar ou criar perfil
+        await loadOrCreateProfile();
+        await loadLeaderboard();
+        
+        return true;
+    } catch (error) {
+        console.error('Erro ao autenticar:', error);
+        onlineStatus.innerText = '🔴 Offline';
+        onlineStatus.classList.add('offline');
+        addLog('⚠️ Erro ao conectar. Modo offline.', true);
+        return false;
+    }
+}
+
+// ========== FIREBASE: PERFIL DO JOGADOR ==========
+async function loadOrCreateProfile() {
+    if (!currentUser) return;
+    
+    const userRef = doc(db, 'players', currentUser.uid);
+    const userSnap = await getDoc(userRef);
+    
+    if (userSnap.exists()) {
+        const data = userSnap.data();
+        gameState.credits = data.credits || 500;
+        gameState.myHP = data.hp || 100;
+        gameState.streak = data.streak || 0;
+        playerNameSpan.innerText = data.nickname || `Jogador#${currentUser.uid.substring(0,4)}`;
+        addLog(`💾 Progresso carregado! ${gameState.credits} créditos`);
+    } else {
+        // Criar novo perfil
+        const newProfile = {
+            nickname: `Jogador#${currentUser.uid.substring(0,4)}`,
+            credits: 500,
+            hp: 100,
+            streak: 0,
+            totalWins: 0,
+            totalLosses: 0,
+            highestStreak: 0,
+            createdAt: serverTimestamp(),
+            lastPlayed: serverTimestamp()
+        };
+        await setDoc(userRef, newProfile);
+        playerNameSpan.innerText = newProfile.nickname;
+        addLog('🆕 Novo perfil criado!');
+    }
+    
+    updateUI();
+}
+
+// ========== FIREBASE: SALVAR PROGRESSO ==========
+async function saveProgress() {
+    if (!currentUser) return;
+    
+    try {
+        const userRef = doc(db, 'players', currentUser.uid);
+        await updateDoc(userRef, {
+            credits: gameState.credits,
+            hp: gameState.myHP,
+            streak: gameState.streak,
+            lastPlayed: serverTimestamp()
+        });
+    } catch (error) {
+        console.error('Erro ao salvar:', error);
+    }
+}
+
+// ========== FIREBASE: LEADERBOARD ==========
+async function loadLeaderboard() {
+    const q = query(
+        collection(db, 'players'),
+        orderBy('streak', 'desc'),
+        limit(10)
+    );
+    
+    onSnapshot(q, (snapshot) => {
+        let html = '';
+        let rank = 1;
+        snapshot.forEach((doc) => {
+            const data = doc.data();
+            const isCurrentUser = doc.id === currentUser?.uid;
+            html += `
+                <div class="leaderboard-item" style="${isCurrentUser ? 'border: 2px solid gold;' : ''}">
+                    <span class="leaderboard-rank">#${rank}</span>
+                    <span>${data.nickname || 'Anônimo'}</span>
+                    <span style="color: #00ffaa;">${data.streak || 0} 🔥</span>
+                </div>
+            `;
+            rank++;
+        });
+        leaderboardContent.innerHTML = html || 'Nenhum jogador ainda';
+    });
+}
+
+// ========== FIREBASE: ATUALIZAR VITÓRIA/DERROTA ==========
+async function updateWinLoss(won) {
+    if (!currentUser) return;
+    
+    try {
+        const userRef = doc(db, 'players', currentUser.uid);
+        const updates = {
+            lastPlayed: serverTimestamp()
+        };
+        
+        if (won) {
+            updates.totalWins = increment(1);
+            if (gameState.streak > 0) {
+                updates.highestStreak = gameState.streak;
+            }
+        } else {
+            updates.totalLosses = increment(1);
+        }
+        
+        await updateDoc(userRef, updates);
+    } catch (error) {
+        console.error('Erro ao atualizar stats:', error);
+    }
+}
+
+// ========== GRÁFICO COM MANIPULAÇÃO PSICOLÓGICA ==========
+function startGraphAnimation() {
+    if(animationFrame) cancelAnimationFrame(animationFrame);
+    precoAtual = 100;
+    simulatedPriceHistory = [100];
+    let lastTime = 0;
+    
+    function animateGraph(timestamp) {
+        if (!gameState.rodadaAtiva) return;
+        if (!lastTime || timestamp - lastTime > 180) {
+            lastTime = timestamp;
+            let trend = (gameState.tendenciaReal === "up") ? 1 : -1;
+            let noise = (Math.random() - 0.5) * 4;
+            let move = trend * (0.8 + Math.random() * 1.5) + noise * 0.8;
+            
+            // FAKE SIGNAL: falso rompimento (30% chance)
+            if (Math.random() < 0.3 && !fakeSignalAtivo) {
+                fakeSignalAtivo = true;
+                move *= -2.2;
+                addLog("⚠️ Falso rompimento detectado!", true);
+                setTimeout(() => { fakeSignalAtivo = false; }, 800);
+            }
+            // SPIKE: explosão súbita
+            if (Math.random() < 0.15) {
+                move *= (Math.random() < 0.5 ? 2.5 : -2.5);
+                addLog("⚡ SPIKE repentino!", true);
+            }
+            precoAtual = Math.max(55, Math.min(155, precoAtual + move));
+            simulatedPriceHistory.push(precoAtual);
+            if(simulatedPriceHistory.length > 45) simulatedPriceHistory.shift();
+            drawCandles();
+        }
+        animationFrame = requestAnimationFrame(animateGraph);
+    }
+    animationFrame = requestAnimationFrame(animateGraph);
+}
+
+function drawCandles() {
+    const w = canvas.width;
+    const h = canvas.height;
+    ctx.clearRect(0, 0, w, h);
+    if(simulatedPriceHistory.length < 2) return;
+    const minP = Math.min(...simulatedPriceHistory, 70);
+    const maxP = Math.max(...simulatedPriceHistory, 130);
+    const range = Math.max(maxP - minP, 0.1);
+    const stepX = w / (simulatedPriceHistory.length - 1);
+    ctx.beginPath();
+    ctx.strokeStyle = "#00ffff";
+    ctx.lineWidth = 2.5;
+    for(let i=0; i<simulatedPriceHistory.length; i++) {
+        let y = h - ((simulatedPriceHistory[i] - minP) / range) * (h - 20) - 10;
+        if(i===0) ctx.moveTo(i*stepX, y);
+        else ctx.lineTo(i*stepX, y);
+    }
+    ctx.stroke();
+}
+
+// ========== IA COM PERSONALIDADE (MODO SOLO) ==========
+function escolherPerfilIA() {
+    const perfis = Object.values(iaPerfis);
+    const novo = perfis[Math.floor(Math.random() * perfis.length)];
+    iaAtual = { ...novo };
+    addLog(`🤖 NOVO ADVERSÁRIO: ${iaAtual.nome} - ${iaAtual.desc}`);
+}
+
+function apostaIA() {
+    let direcao;
+    const randDir = Math.random();
+    if(randDir < iaAtual.probApostaDir) {
+        direcao = gameState.tendenciaReal;
+    } else {
+        direcao = gameState.tendenciaReal === "up" ? "down" : "up";
+    }
+    const valor = Math.floor(Math.random() * (iaAtual.rangeAposta[1] - iaAtual.rangeAposta[0]) + iaAtual.rangeAposta[0]);
+    return { direcao, valor };
+}
+
+// ========== EVENTOS ALEATÓRIOS ==========
+function ativarEventoAleatorio() {
+    if(Math.random() > 0.25) return;
+    const eventos = [
+        {nome:"📉 FLASH CRASH", efeito:()=>{ gameState.tendenciaReal = (gameState.tendenciaReal === "up") ? "down" : "up"; addLog("⚡ FLASH CRASH! TENDÊNCIA INVERTIDA!") }},
+        {nome:"🐋 BALEIA", efeito:()=>{ if(!gameState.apostaOponente && gameMode === 'solo') { gameState.apostaOponente = apostaIA(); addLog("🐋 Baleia entrou! Oponente fez aposta extra!") } }},
+        {nome:"🔥 FOMO", efeito:()=>{ if(gameState.apostaJogador) { gameState.apostaJogador.valor = Math.min(gameState.credits, Math.floor(gameState.apostaJogador.valor*1.6)); addLog("🔥 FOMO! Sua aposta aumentou!") } }},
+        {nome:"💀 LIQUIDAÇÃO", efeito:()=>{ if(!gameState.apostaJogador && gameState.tempoRestante>8) { gameState.myHP = Math.max(1, gameState.myHP-15); addLog("💀 Liquidação! -15 HP sem apostar!") } }}
+    ];
+    let ev = eventos[Math.floor(Math.random()*eventos.length)];
+    ev.efeito();
+    eventAlertSpan.innerText = ev.nome;
+    setTimeout(()=>{ if(gameState.rodadaAtiva) eventAlertSpan.innerText = "⚡"; }, 2000);
+    updateUI();
+}
+
+// ========== RESOLUÇÃO DO DUELO COM COMBO ==========
+async function encerrarRodada() {
+    if(!gameState.rodadaAtiva) return;
+    gameState.rodadaAtiva = false;
+    if(animationFrame) cancelAnimationFrame(animationFrame);
+    clearInterval(gameState.intervaloId);
+    
+    let acertouJogador = (gameState.apostaJogador && gameState.apostaJogador.direcao === gameState.tendenciaReal);
+    let acertouOponente = (gameState.apostaOponente && gameState.apostaOponente.direcao === gameState.tendenciaReal);
+    let valorJ = gameState.apostaJogador ? gameState.apostaJogador.valor : 0;
+    let valorO = gameState.apostaOponente ? gameState.apostaOponente.valor : 0;
+    
+    let danoMulti = 1 + (gameState.combo * 0.2);
+    danoMulti = Math.min(danoMulti, 2.2);
+    
+    addLog(`🔔 RESULTADO: TENDÊNCIA = ${gameState.tendenciaReal === "up" ? "ALTA 🔼" : "BAIXA 🔽"}`);
+    
+    let won = false;
+    
+    if(acertouJogador && !acertouOponente) {
+        let ganho = valorO;
+        let danoCausado = Math.floor(valorJ * danoMulti);
+        gameState.credits += ganho;
+        gameState.oppHP -= danoCausado;
+        gameState.combo++;
+        addLog(`🎉 ACERTOU! +${ganho} créditos. Dano COMBO ${danoMulti.toFixed(1)}x: -${danoCausado} HP no adversário.`);
+        gameState.streak++;
+        aplicarFeedbackVisual('ganho');
+        won = true;
+    } 
+    else if(!acertouJogador && acertouOponente) {
+        let perda = valorJ;
+        gameState.credits -= perda;
+        gameState.myHP -= valorO;
+        gameState.combo = 0;
+        addLog(`💀 ERROU! Perdeu ${perda} créditos e -${valorO} HP.`);
+        gameState.streak = 0;
+        aplicarFeedbackVisual('dano');
+    }
+    else if(acertouJogador && acertouOponente) {
+        gameState.credits += Math.floor(valorO * 0.4);
+        addLog(`🤝 Empate! Recupera 40% da aposta adversária.`);
+        gameState.combo = Math.max(0, gameState.combo-1);
+    }
+    else {
+        gameState.credits -= Math.min(valorJ, gameState.credits);
+        gameState.combo = 0;
+        addLog(`💥 Ambos erraram! Perderam apostas.`);
+        gameState.streak = 0;
+    }
+    
+    gameState.myHP = Math.min(100, Math.max(0, gameState.myHP));
+    gameState.oppHP = Math.min(100, Math.max(0, gameState.oppHP));
+    gameState.credits = Math.max(0, gameState.credits);
+    updateUI();
+    
+    // Salvar progresso no Firebase
+    await saveProgress();
+    if(won) await updateWinLoss(true);
+    
+    if(gameState.myHP <= 0) {
+        addLog("☠️ VOCÊ MORREU! Fim de jogo.");
+        await updateWinLoss(false);
+        desabilitarBotoes();
+        setTimeout(() => {
+            location.reload();
+        }, 3000);
+    } else if(gameState.oppHP <= 0) {
+        addLog("🏆 VITÓRIA! Você destruiu o adversário! +200 créditos bônus.");
+        gameState.credits += 200;
+        gameState.oppHP = 100;
+        gameState.myHP = Math.min(100, gameState.myHP+15);
+        if(gameMode === 'solo') escolherPerfilIA();
+        await saveProgress();
+        updateUI();
+    }
+    
+    setTimeout(() => {
+        if(gameState.myHP > 0 && gameState.oppHP > 0) {
+            iniciarRodada();
+        }
+    }, 2800);
+}
+
+// ========== AÇÕES POR RODADA ==========
+function fazerAposta(direcao) {
+    if(!gameState.rodadaAtiva) { addLog("Rodada não iniciada!"); return; }
+    if(gameState.oponenteTravado) { addLog("🔒 Você está travado!"); return; }
+    let valor = parseInt(betInput.value);
+    if(valor < 10) { addLog("Aposta mínima 10"); return; }
+    if(valor > gameState.credits) { addLog("Créditos insuficientes"); return; }
+    gameState.apostaJogador = { direcao: direcao, valor: valor };
+    gameState.direcaoAtual = direcao;
+    gameState.podeApostar = false;
+    gameState.podeAlterarAposta = true;
+    addLog(`✅ Aposta ${valor} em ${direcao === "up" ? "ALTA" : "BAIXA"}`);
+    
+    if(!gameState.apostaOponente && gameMode === 'solo') {
+        gameState.apostaOponente = apostaIA();
+        addLog(`🤖 ${iaAtual.nome} apostou ${gameState.apostaOponente.valor} em ${gameState.apostaOponente.direcao === "up" ? "ALTA" : "BAIXA"}`);
+    }
+}
+
+function ajustarAposta(delta) {
+    if(!gameState.rodadaAtiva || !gameState.apostaJogador) { addLog("Aposte primeiro!"); return; }
+    let novo = gameState.apostaJogador.valor + delta;
+    if(novo < 10) novo = 10;
+    if(novo > gameState.credits) novo = gameState.credits;
+    gameState.apostaJogador.valor = novo;
+    betInput.value = novo;
+    addLog(`✏️ Aposta ajustada para ${novo}`);
+}
+
+function dobrarAposta() {
+    if(!gameState.rodadaAtiva || !gameState.apostaJogador) return;
+    let novo = gameState.apostaJogador.valor * 2;
+    if(novo > gameState.credits) novo = gameState.credits;
+    gameState.apostaJogador.valor = novo;
+    betInput.value = novo;
+    addLog(`💥 APOSTA DOBRADA para ${novo}!`);
+}
+
+function inverterDirecao() {
+    if(!gameState.rodadaAtiva || !gameState.apostaJogador) return;
+    let novaDir = gameState.apostaJogador.direcao === "up" ? "down" : "up";
+    gameState.apostaJogador.direcao = novaDir;
+    gameState.direcaoAtual = novaDir;
+    addLog(`🔄 DIREÇÃO INVERTIDA para ${novaDir === "up" ? "ALTA" : "BAIXA"}`);
+}
+
+// Modo CLUTCH (últimos 3s)
+function verificarClutch() {
+    if(gameState.tempoRestante <= 3 && gameState.rodadaAtiva && !gameState.clutchAtivo) {
+        gameState.clutchAtivo = true;
+        aplicarFeedbackVisual('clutch');
+        addLog("🔥 MODO CLUTCH ATIVADO! ÚLTIMOS 3 SEGUNDOS! Ações finais liberadas.", true);
+        doubleBtn.style.background = "#ff5500";
+        reverseBtn.style.background = "#ff5500";
+    }
+}
+
+// Habilidades
+function congelar() {
+    if(!gameState.rodadaAtiva) return;
+    if(gameState.credits < 50) { addLog("Precisa 50 créditos"); return; }
+    gameState.credits -= 50;
+    gameState.tempoRestante += 2;
+    timerDisplay.innerText = gameState.tempoRestante;
+    addLog("⏸️ +2 segundos!");
+    updateUI();
+}
+function revelarTendencia() {
+    if(!gameState.rodadaAtiva) return;
+    if(gameState.credits < 100) { addLog("Precisa 100 créditos"); return; }
+    gameState.credits -= 100;
+    addLog(`👁️ TENDÊNCIA REAL: ${gameState.tendenciaReal === "up" ? "📈 ALTA" : "📉 BAIXA"}`);
+    updateUI();
+}
+function travarAdversario() {
+    if(!gameState.rodadaAtiva) return;
+    if(gameState.credits < 80) { addLog("Precisa 80 créditos"); return; }
+    gameState.credits -= 80;
+    gameState.oponenteTravado = true;
+    addLog("🔒 Adversário travado por 5s!");
+    setTimeout(() => { gameState.oponenteTravado = false; addLog("🔓 Adversário liberado"); }, 5000);
+    updateUI();
+}
+
+function desabilitarBotoes() {
+    upBtn.disabled = downBtn.disabled = true;
+}
+
+// Timer da rodada
+function iniciarRodada() {
+    if(gameState.rodadaAtiva) return;
+    let prob = 0.55 + Math.random() * 0.2;
+    gameState.tendenciaReal = Math.random() < prob ? "up" : "down";
+    gameState.apostaJogador = null;
+    gameState.apostaOponente = null;
+    gameState.podeApostar = true;
+    gameState.podeAlterarAposta = true;
+    gameState.tempoRestante = 30;
+    gameState.clutchAtivo = false;
+    gameState.rodadaAtiva = true;
+    timerDisplay.innerText = gameState.tempoRestante;
+    eventAlertSpan.innerText = "⚡ NOVA RODADA";
+    addLog(`📊 NOVA RODADA`);
+    startGraphAnimation();
+    
+    if(gameState.intervaloId) clearInterval(gameState.intervaloId);
+    gameState.intervaloId = setInterval(() => {
+        if(!gameState.rodadaAtiva) return;
+        if(gameState.tempoRestante <= 1) {
+            clearInterval(gameState.intervaloId);
+            encerrarRodada();
+        } else {
+            gameState.tempoRestante--;
+            timerDisplay.innerText = gameState.tempoRestante;
+            if(gameState.tempoRestante === 5) eventAlertSpan.innerText = "🔥 CLUTCH!";
+            verificarClutch();
+            if(gameState.tempoRestante % 10 === 0) ativarEventoAleatorio();
+        }
+    }, 1000);
+}
+
+// ========== EVENTOS DOS BOTÕES ==========
+upBtn.onclick = () => fazerAposta("up");
+downBtn.onclick = () => fazerAposta("down");
+doubleBtn.onclick = dobrarAposta;
+adjustUpBtn.onclick = () => ajustarAposta(20);
+adjustDownBtn.onclick = () => ajustarAposta(-20);
+reverseBtn.onclick = inverterDirecao;
+freezeBtn.onclick = congelar;
+revealBtn.onclick = revelarTendencia;
+lockBtn.onclick = travarAdversario;
+
+// ========== MODAL DE SELEÇÃO DE MODO ==========
+modeSoloBtn.onclick = () => {
+    gameMode = 'solo';
+    modeSoloBtn.classList.add('active');
+    modePvPBtn.classList.remove('active');
+};
+
+modePvPBtn.onclick = () => {
+    gameMode = 'pvp';
+    modePvPBtn.classList.add('active');
+    modeSoloBtn.classList.remove('active');
+};
+
+startGameBtn.onclick = async () => {
+    const connected = await loginUser();
+    if(!connected && gameMode === 'pvp') {
+        alert('⚠️ Modo PVP requer conexão. Tente modo Solo ou verifique sua conexão.');
+        return;
+    }
+    
+    modeModal.style.display = 'none';
+    gameApp.style.display = 'block';
+    
+    if(gameMode === 'solo') {
+        escolherPerfilIA();
+    } else {
+        addLog('🌐 Modo PVP ativado - Aguardando oponente...');
+        // TODO: Implementar matchmaking
+    }
+    
+    iniciarJogo();
+};
+
+// ========== CONTADOR DE JOGADORES ONLINE ==========
+async function updateOnlineCount() {
+    try {
+        const playersRef = collection(db, 'players');
+        const q = query(playersRef);
+        onSnapshot(q, (snapshot) => {
+            playersOnlineSpan.innerText = `🌐 ${snapshot.size} jogadores cadastrados`;
+        });
+    } catch (error) {
+        playersOnlineSpan.innerText = '🌐 Offline';
+    }
+}
+
+// ========== INICIALIZAÇÃO DO JOGO ==========
+function iniciarJogo() {
+    gameState = {
+        myHP: gameState.myHP || 100,
+        oppHP: 100,
+        credits: gameState.credits || 500,
+        streak: gameState.streak || 0,
+        combo: 0,
+        rodadaAtiva: false,
+        tempoRestante: 30,
+        tendenciaReal: null,
+        apostaJogador: null,
+        apostaOponente: null,
+        oponenteTravado: false,
+        podeApostar: true,
+        podeAlterarAposta: true,
+        intervaloId: null,
+        clutchAtivo: false,
+        direcaoAtual: null
+    };
+    updateUI();
+    iniciarRodada();
+}
+
+// ========== AUTO-START ==========
+window.addEventListener('load', () => {
+    modeModal.style.display = 'flex';
+    updateOnlineCount();
+});
+
+// Salvar progresso periodicamente
+setInterval(() => {
+    if(currentUser && gameState.rodadaAtiva) {
+        saveProgress();
+    }
+}, 30000); // A cada 30 segundos
+
+</script>
+</body>
+</html>
