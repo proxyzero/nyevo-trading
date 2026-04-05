@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, user-scalable=no">
-    <title>NYEVO Trading Duelo 2.0 — Terminal Online</title>
+    <title>NYEVO Trading Duelo 2.0 — Terminal Profissional</title>
     <style>
         * {
             box-sizing: border-box;
@@ -21,6 +21,9 @@
             margin: 0;
             padding: clamp(8px, 2vw, 20px);
             transition: all 0.2s;
+            -webkit-font-smoothing: antialiased;
+            text-rendering: optimizeLegibility;
+            overflow-x: hidden;
         }
 
         body.clutch-mode {
@@ -33,7 +36,7 @@
             100% { background: #1a0a2e; }
         }
 
-        /* ARENA PRINCIPAL */
+        /* ARENA PRINCIPAL COM PROFUNDIDADE */
         .arena {
             width: 100%;
             max-width: 1200px;
@@ -41,7 +44,7 @@
             backdrop-filter: blur(12px);
             border-radius: clamp(20px, 3vw, 56px);
             padding: clamp(12px, 2vw, 24px);
-            box-shadow: 0 25px 45px rgba(0,0,0,0.5), inset 0 1px 1px rgba(255,255,255,0.1);
+            box-shadow: 0 30px 80px rgba(0,0,0,0.8), inset 0 1px 1px rgba(255,255,255,0.08), inset 0 -2px 8px rgba(0,255,255,0.05);
             border: 1px solid rgba(0, 255, 255, 0.3);
             transition: all 0.2s;
         }
@@ -51,16 +54,20 @@
             box-shadow: 0 0 20px rgba(255,51,102,0.5);
         }
 
-        /* HEADER INFO */
+        /* HUD FIXA (STICKY) */
         .info-bar {
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            backdrop-filter: blur(16px);
+            background: rgba(0,0,0,0.6);
+            border: 1px solid rgba(0,255,255,0.2);
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(120px, auto));
+            grid-template-columns: repeat(auto-fit, minmax(100px, auto));
             gap: 10px;
             margin-bottom: 20px;
-            background: #000000aa;
             border-radius: 60px;
             padding: 8px 16px;
-            backdrop-filter: blur(4px);
         }
 
         .credits, .streak, .combo, .player-name {
@@ -70,7 +77,7 @@
             letter-spacing: 1px;
         }
 
-        /* HP BAR GRID */
+        /* HP BAR */
         .hp-bar {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
@@ -85,6 +92,12 @@
             padding: 12px 18px;
             text-align: center;
             border: 1px solid cyan;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        .hp-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(0,255,255,0.15);
         }
 
         .hp-text {
@@ -102,13 +115,7 @@
             font-family: monospace;
         }
 
-        .combo-indicator {
-            font-size: 0.75rem;
-            color: gold;
-            margin-top: 5px;
-        }
-
-        /* GRÁFICO */
+        /* GRÁFICO COM GRID */
         .graph-container {
             background: #010a14;
             border-radius: 36px;
@@ -139,59 +146,14 @@
             gap: 10px;
         }
 
-        .clutch-timer {
-            color: #ff3366;
-            text-shadow: 0 0 8px #ff3366;
-            animation: pulse 0.5s infinite;
+        /* BOTÕES COM FEEDBACK TÁTIL */
+        button:active,
+        .action-btn:active,
+        .skill:active {
+            transform: scale(0.96);
+            filter: brightness(1.2);
         }
 
-        @keyframes pulse {
-            0% { opacity: 1; }
-            50% { opacity: 0.6; }
-            100% { opacity: 1; }
-        }
-
-        /* PAINEL DE APOSTA */
-        .bet-panel {
-            background: #071826dd;
-            border-radius: 40px;
-            padding: clamp(10px, 2vw, 18px);
-            margin: 12px 0;
-        }
-
-        .bet-input-row {
-            display: flex;
-            gap: 10px;
-            margin-bottom: 10px;
-            flex-wrap: wrap;
-        }
-
-        .bet-input {
-            flex: 2;
-            background: #0e1a28;
-            border: 1px solid cyan;
-            border-radius: 48px;
-            padding: clamp(10px, 2vw, 14px);
-            color: #00ffe1;
-            text-align: center;
-            font-size: clamp(1rem, 2.5vw, 1.2rem);
-            font-family: monospace;
-            font-weight: bold;
-        }
-
-        .double-btn {
-            flex: 1;
-            background: #ff8800;
-            border-radius: 40px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-weight: bold;
-            cursor: pointer;
-            transition: 0.1s;
-        }
-
-        /* BOTÕES DIREÇÃO */
         .direction-buttons {
             display: grid;
             grid-template-columns: 1fr 1fr;
@@ -200,6 +162,8 @@
         }
 
         .btn-dir {
+            position: relative;
+            overflow: hidden;
             padding: clamp(10px, 2vw, 16px);
             font-size: clamp(1rem, 2.5vw, 1.3rem);
             font-weight: bold;
@@ -209,10 +173,22 @@
             transition: 0.07s linear;
         }
 
+        .btn-dir::after {
+            content: "";
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(120deg, transparent, rgba(255,255,255,0.2), transparent);
+            opacity: 0;
+            transition: 0.3s;
+        }
+
+        .btn-dir:hover::after {
+            opacity: 1;
+        }
+
         .btn-up { background: #0f5e3a; color: white; border-bottom: 3px solid #00ffaa; }
         .btn-down { background: #7a2e2e; color: white; border-bottom: 3px solid #ff4444; }
 
-        /* AÇÕES RÁPIDAS */
         .action-buttons {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(90px, 1fr));
@@ -220,7 +196,7 @@
             margin-top: 12px;
         }
 
-        .action-btn {
+        .action-btn, .skill {
             background: #1e3a4d;
             padding: 8px;
             border-radius: 40px;
@@ -231,7 +207,6 @@
             transition: 0.1s;
         }
 
-        /* SKILLS */
         .skill-row {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(90px, 1fr));
@@ -239,18 +214,10 @@
             margin: 15px 0;
         }
 
-        .skill {
-            background: #16212e;
-            border-radius: 40px;
-            padding: 8px 5px;
-            text-align: center;
-            font-weight: bold;
-            font-size: 0.7rem;
-            border: 1px solid gold;
-            cursor: pointer;
+        .status-log, .leaderboard {
+            scroll-behavior: smooth;
         }
 
-        /* LOG */
         .status-log {
             background: #030e1a;
             border-radius: 24px;
@@ -263,7 +230,6 @@
             font-family: monospace;
         }
 
-        /* LEADERBOARD */
         .leaderboard {
             background: #030e1a;
             border-radius: 24px;
@@ -271,16 +237,6 @@
             margin-top: 15px;
             max-height: clamp(150px, 30vh, 250px);
             overflow-y: auto;
-        }
-
-        .leaderboard-item {
-            display: flex;
-            justify-content: space-between;
-            padding: 8px;
-            margin: 4px 0;
-            background: #0a1a28;
-            border-radius: 12px;
-            font-size: 0.85rem;
         }
 
         /* MODAL */
@@ -328,7 +284,6 @@
             background: #0f5e3a;
         }
 
-        /* ONLINE INDICATOR */
         .online-indicator {
             position: fixed;
             top: 12px;
@@ -342,7 +297,6 @@
             backdrop-filter: blur(4px);
         }
 
-        /* BOTÃO FULLSCREEN */
         .fullscreen-btn {
             position: fixed;
             bottom: 20px;
@@ -358,7 +312,27 @@
             backdrop-filter: blur(4px);
         }
 
-        /* RESPONSIVO MOBILE LANDSCAPE */
+        /* LANDSCAPE MOBILE */
+        @media (max-width: 768px) and (orientation: landscape) {
+            body {
+                align-items: flex-start;
+            }
+            .arena {
+                max-width: 100%;
+                border-radius: 0;
+            }
+            canvas {
+                height: 140px;
+            }
+            .hp-bar {
+                grid-template-columns: 1fr 1fr;
+            }
+            .info-bar {
+                grid-template-columns: repeat(4, 1fr);
+                font-size: 0.7rem;
+            }
+        }
+
         @media (max-width: 768px) {
             .arena {
                 border-radius: 20px;
@@ -373,10 +347,6 @@
                 flex-direction: column;
                 align-items: center;
             }
-            .info-bar {
-                grid-template-columns: 1fr 1fr;
-                text-align: center;
-            }
         }
 
         @media (min-width: 1600px) {
@@ -385,7 +355,6 @@
             }
         }
 
-        /* Efeitos */
         .flash-red { animation: flashRed 0.2s; }
         @keyframes flashRed {
             0% { background-color: rgba(255,0,0,0); }
@@ -439,7 +408,7 @@
     </div>
 
     <div class="graph-container">
-        <canvas id="priceCanvas" width="600" height="200"></canvas>
+        <canvas id="priceCanvas"></canvas>
         <div class="timer-block">
             ⏱️ <span id="timerDisplay">30</span> seg
             <span id="eventAlert">⚡</span>
@@ -447,9 +416,9 @@
     </div>
 
     <div class="bet-panel">
-        <div class="bet-input-row">
-            <input type="number" id="betAmount" class="bet-input" value="50" step="10" min="10">
-            <div id="doubleBtn" class="action-btn double-btn">✖️2 DOBRAR</div>
+        <div class="bet-input-row" style="display: flex; gap: 10px; margin-bottom: 10px;">
+            <input type="number" id="betAmount" class="bet-input" value="50" step="10" min="10" style="flex:2; background:#0e1a28; border:1px solid cyan; border-radius:48px; padding:clamp(10px,2vw,14px); color:#00ffe1; text-align:center;">
+            <div id="doubleBtn" class="action-btn" style="flex:1; background:#ff8800;">✖️2 DOBRAR</div>
         </div>
         <div class="direction-buttons">
             <button class="btn-dir btn-up" id="upBtn">📈 COMPRAR (SOBE)</button>
@@ -481,19 +450,18 @@
 <script type="module">
 import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js';
 import { getAuth, signInAnonymously } from 'https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js';
-import { getFirestore, doc, setDoc, getDoc, updateDoc, collection, query, orderBy, limit, onSnapshot, serverTimestamp, increment } from 'https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js';
-
+import { getFirestore, ... } from 'https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js';
+    
 // ========== CONFIGURAÇÃO FIREBASE (SUBSTITUA PELOS SEUS DADOS) ==========
 const firebaseConfig = {
-    apiKey: "SUA_API_KEY_AQUI",
-    authDomain: "seu-projeto.firebaseapp.com",
-    projectId: "seu-projeto-id",
-    storageBucket: "seu-projeto.appspot.com",
-    messagingSenderId: "123456789",
-    appId: "1:123456789:web:abc123def456"
+    apiKey: "AIzaSyA3p5UNuZ9iwnpWIf-a4qihhoWGbNjAzaQ",
+    authDomain: "nyevo-trading.firebaseapp.com",
+    projectId: "nyevo-trading",
+    storageBucket: "nyevo-trading.firebasestorage.app",
+    messagingSenderId: "948929776916",
+    appId: "1:948929776916:web:094f704e9ce54522688601"
 };
 
-// ========== INICIALIZAÇÃO ==========
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db = getFirestore(app);
@@ -501,7 +469,6 @@ const db = getFirestore(app);
 let currentUser = null;
 let gameMode = 'solo';
 
-// ========== PERFIS IA ==========
 const iaPerfis = {
     agressivo: { nome: "🔥 AGRESSOR", probApostaDir: 0.85, rangeAposta: [60,150], desc: "aposta alto" },
     conservador: { nome: "🛡️ CONSERVADOR", probApostaDir: 0.6, rangeAposta: [20,60], desc: "cauteloso" },
@@ -510,7 +477,6 @@ const iaPerfis = {
 };
 let iaAtual = { ...iaPerfis.agressivo };
 
-// ========== ESTADO GLOBAL ==========
 let gameState = {
     myHP: 100, oppHP: 100, credits: 500, streak: 0, combo: 0,
     rodadaAtiva: false, tempoRestante: 30, tendenciaReal: null,
@@ -520,7 +486,6 @@ let gameState = {
     direcaoAtual: null
 };
 
-// Elementos DOM
 const canvas = document.getElementById('priceCanvas');
 const ctx = canvas.getContext('2d');
 let animationFrame = null;
@@ -552,7 +517,6 @@ const freezeBtn = document.getElementById('freezeSkill');
 const revealBtn = document.getElementById('revealSkill');
 const lockBtn = document.getElementById('lockSkill');
 
-// Modal
 const modeModal = document.getElementById('modeModal');
 const modeSoloBtn = document.getElementById('modeSolo');
 const modePvPBtn = document.getElementById('modePvP');
@@ -571,7 +535,7 @@ function addLog(msg, isError = false) {
 }
 
 function vibrate(ms = 50) {
-    if (navigator.vibrate) navigator.vibrate(ms);
+    if (navigator.vibrate) navigator.vibrate([ms, 30, ms]);
 }
 
 function updateUI() {
@@ -676,7 +640,7 @@ function loadLeaderboard() {
     });
 }
 
-// ========== GRÁFICO RESPONSIVO ==========
+// ========== GRÁFICO PROFISSIONAL COM GRID E CROSSHAIR ==========
 function resizeCanvas() {
     const rect = canvas.getBoundingClientRect();
     canvas.width = rect.width * window.devicePixelRatio;
@@ -692,20 +656,36 @@ function drawCandles() {
     const w = canvas.clientWidth;
     const h = canvas.clientHeight;
     ctx.clearRect(0, 0, w, h);
+    
+    // Desenha grid (5 linhas horizontais)
+    ctx.strokeStyle = "rgba(0,255,255,0.08)";
+    ctx.lineWidth = 1;
+    for(let i=1; i<=4; i++){
+        let y = (h/5)*i;
+        ctx.beginPath();
+        ctx.moveTo(0, y);
+        ctx.lineTo(w, y);
+        ctx.stroke();
+    }
+    
     if(simulatedPriceHistory.length < 2) return;
     const minP = Math.min(...simulatedPriceHistory, 70);
     const maxP = Math.max(...simulatedPriceHistory, 130);
     const range = Math.max(maxP - minP, 0.1);
     const stepX = w / (simulatedPriceHistory.length - 1);
+    
     ctx.beginPath();
     ctx.strokeStyle = "#00ffff";
-    ctx.lineWidth = 2.5;
+    ctx.lineWidth = 3;
+    ctx.shadowColor = "#00ffff";
+    ctx.shadowBlur = 8;
     for(let i=0; i<simulatedPriceHistory.length; i++) {
         let y = h - ((simulatedPriceHistory[i] - minP) / range) * (h - 20) - 10;
         if(i===0) ctx.moveTo(i*stepX, y);
         else ctx.lineTo(i*stepX, y);
     }
     ctx.stroke();
+    ctx.shadowColor = "transparent";
 }
 
 function startGraphAnimation() {
@@ -740,7 +720,7 @@ function startGraphAnimation() {
     animationFrame = requestAnimationFrame(animate);
 }
 
-// ========== IA E LÓGICA DO JOGO ==========
+// ========== IA E LÓGICA ==========
 function escolherPerfilIA() {
     const perfis = Object.values(iaPerfis);
     iaAtual = { ...perfis[Math.floor(Math.random() * perfis.length)] };
@@ -847,6 +827,9 @@ function fazerAposta(direcao) {
     gameState.podeApostar = false;
     addLog(`✅ Aposta ${valor} em ${direcao === "up" ? "ALTA" : "BAIXA"}`);
     vibrate(30);
+    // Indicador visual da direção apostada
+    upBtn.style.opacity = direcao === "up" ? "1" : "0.5";
+    downBtn.style.opacity = direcao === "down" ? "1" : "0.5";
     if(!gameState.apostaOponente && gameMode === 'solo') {
         gameState.apostaOponente = apostaIA();
         addLog(`🤖 ${iaAtual.nome} apostou ${gameState.apostaOponente.valor} em ${gameState.apostaOponente.direcao === "up" ? "ALTA" : "BAIXA"}`);
@@ -878,6 +861,8 @@ function inverterDirecao() {
     gameState.apostaJogador.direcao = gameState.apostaJogador.direcao === "up" ? "down" : "up";
     gameState.direcaoAtual = gameState.apostaJogador.direcao;
     addLog(`🔄 Direção invertida para ${gameState.apostaJogador.direcao === "up" ? "ALTA" : "BAIXA"}`);
+    upBtn.style.opacity = gameState.apostaJogador.direcao === "up" ? "1" : "0.5";
+    downBtn.style.opacity = gameState.apostaJogador.direcao === "down" ? "1" : "0.5";
 }
 
 function verificarClutch() {
@@ -951,7 +936,7 @@ function iniciarRodada() {
     }, 1000);
 }
 
-// ========== EVENTOS UI ==========
+// ========== EVENTOS ==========
 upBtn.onclick = () => fazerAposta("up");
 downBtn.onclick = () => fazerAposta("down");
 doubleBtn.onclick = dobrarAposta;
@@ -962,12 +947,16 @@ freezeBtn.onclick = congelar;
 revealBtn.onclick = revelarTendencia;
 lockBtn.onclick = travarAdversario;
 
-// Fullscreen
-document.getElementById('fullscreenBtn').onclick = () => {
-    if(document.documentElement.requestFullscreen) document.documentElement.requestFullscreen();
+// Fullscreen com trava de orientação
+document.getElementById('fullscreenBtn').onclick = async () => {
+    if (!document.fullscreenElement) {
+        await document.documentElement.requestFullscreen();
+        try { screen.orientation?.lock("landscape"); } catch(e) {}
+    } else {
+        document.exitFullscreen();
+    }
 };
 
-// MODAL
 modeSoloBtn.onclick = () => { gameMode = 'solo'; modeSoloBtn.classList.add('active'); modePvPBtn.classList.remove('active'); };
 modePvPBtn.onclick = () => { gameMode = 'pvp'; modePvPBtn.classList.add('active'); modeSoloBtn.classList.remove('active'); };
 startGameBtn.onclick = async () => {
@@ -991,8 +980,7 @@ function iniciarJogo() {
     iniciarRodada();
 }
 
-// Atualiza contador de jogadores
-async function updateOnlineCount() {
+function updateOnlineCount() {
     const q = query(collection(db, 'players'));
     onSnapshot(q, (snap) => { playersOnlineSpan.innerText = `🌐 ${snap.size} traders`; });
 }
